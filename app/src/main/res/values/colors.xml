@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Alien Cyberpunk Palette -->
+    <color name="alien_green">#39FF14</color>
+    <color name="alien_cyan">#00D7FF</color>
+    <color name="alien_purple">#B026FF</color>
+    <color name="alien_acid">#CCFF00</color>
+    <color name="alien_bg">#02050A</color>
+    <color name="alien_card">#0A0F1E</color>
+
+    <!-- Original Palette (for reference/fallback) -->
+    <color name="void_bg">#080B14</color>
+    <color name="void_card">#0A0F1E</color>
+    <color name="void_cyan">#00FFFF</color>
+    <color name="void_magenta">#FF00FF</color>
+    <color name="void_purple">#8800FF</color>
+    <color name="void_green">#00FF88</color>
+    <color name="void_orange">#FF8800</color>
+    <color name="void_red">#FF4444</color>
+    <color name="void_yellow">#FFAA00</color>
+    <color name="void_text">#FFFFFF</color>
+    <color name="void_text_dim">#888888</color>
+    <color name="void_hp_bar">#00FF44</color>
+    <color name="void_xp_bar">#00AAFF</color>
+
+    <!-- Material -->
+    <color name="colorPrimary">#00FFFF</color>
+    <color name="colorPrimaryDark">#0A0F1E</color>
+    <color name="colorAccent">#FF00FF</color>
+</resources>

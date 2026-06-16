@@ -1,0 +1,2 @@
+rootProject.name = "VoidAscension"
+include ':app'

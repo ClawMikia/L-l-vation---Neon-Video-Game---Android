@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">L\'élévation</string>
+    <string name="btn_play">ENTER THE VOID</string>
+    <string name="btn_upgrades">UPGRADES</string>
+    <string name="btn_quit">QUIT</string>
+    <string name="btn_resume">RESUME</string>
+    <string name="paused">PAUSED</string>
+    <string name="wave">WAVE</string>
+    <string name="level_up">LEVEL UP!</string>
+    <string name="game_over">VOID CONSUMED YOU</string>
+    <string name="best_score">BEST SCORE</string>
+    <string name="choose_upgrade">CHOOSE UPGRADE</string>
+    <string name="permanent_upgrades">PERMANENT UPGRADES</string>
+    <string name="void_shards">VOID SHARDS</string>
+    <string name="buy">BUY</string>
+    <string name="owned">OWNED</string>
+    <string name="back">BACK</string>
+    <string name="score">SCORE</string>
+    <string name="kills">KILLS</string>
+    <string name="wave_complete">WAVE COMPLETE</string>
+    <string name="boss_incoming">BOSS INCOMING</string>
+    <string name="tap_to_select">TAP TO SELECT</string>
+</resources>

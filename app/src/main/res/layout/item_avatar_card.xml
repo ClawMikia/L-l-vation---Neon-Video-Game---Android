@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardAvatar"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_columnWeight="1"
+    app:cardBackgroundColor="#0A0F1E"
+    app:cardCornerRadius="12dp"
+    app:strokeColor="#444444"
+    app:strokeWidth="1dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="16dp">
+
+        <FrameLayout
+            android:id="@+id/avatarIconContainer"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:id="@+id/tvCodename"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CODENAME"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:fontFamily="monospace"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvShapeName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SHAPE"
+            android:textColor="#888888"
+            android:textSize="12sp"
+            android:fontFamily="monospace"/>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

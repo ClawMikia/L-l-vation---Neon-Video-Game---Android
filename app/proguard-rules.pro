@@ -1,0 +1,5 @@
+-keep class com.voidascension.** { *; }
+-keepclassmembers class com.voidascension.** { *; }
+-dontwarn com.voidascension.**
+-keep class com.google.gson.** { *; }
+-keepattributes *Annotation*
