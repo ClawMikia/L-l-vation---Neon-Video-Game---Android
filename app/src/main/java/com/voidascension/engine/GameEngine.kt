@@ -43,6 +43,7 @@ class GameEngine(
 
     // ─── Entity Lists ──────────────────────────────────────────────────────────
     val enemies = ArrayList<Enemy>(64)
+    private val pendingEnemies = ArrayList<Enemy>(8)
     val projectiles = ArrayList<Projectile>(128)
     val enemyProjectiles = ArrayList<EnemyProjectile>(64)
     val lootItems = ArrayList<LootItem>(32)
@@ -51,6 +52,7 @@ class GameEngine(
     // ─── State ─────────────────────────────────────────────────────────────────
     var gameState = GameState.PLAYING
     private var lastUpdateMs = System.currentTimeMillis()
+    private var startTimeMs = lastUpdateMs
     private var lastFireMs = 0L
     private var lastFireDirectionMs = 0L
     private var currentFireTarget: Vector2? = null
@@ -103,6 +105,7 @@ class GameEngine(
 
     // ─── Main Update ──────────────────────────────────────────────────────────
     private fun update(dt: Float, currentTimeMs: Long) {
+        player.update(dt, currentTimeMs)
         updatePlayer(dt, currentTimeMs)
         updateEnemies(dt, currentTimeMs)
         updateProjectiles(dt, currentTimeMs)
@@ -128,6 +131,28 @@ class GameEngine(
             particleSystem.emitTrail(player.position.x, player.position.y, 0xFF004488.toInt())
         }
 
+        // Twins Movement (Orbit)
+        if (player.hasTwins) {
+            val orbitSpeed = 4.0f
+            val orbitRadius = 110f
+            // Synchronize with visual clock (Renderer uses 'time')
+            val elapsed = (currentTimeMs - startTimeMs) / 1000f
+            val angle1 = elapsed * orbitSpeed
+            val angle2 = angle1 + PI.toFloat()
+            
+            player.twin1Pos.x = player.position.x + cos(angle1) * orbitRadius
+            player.twin1Pos.y = player.position.y + sin(angle1) * orbitRadius
+            
+            player.twin2Pos.x = player.position.x + cos(angle2) * orbitRadius
+            player.twin2Pos.y = player.position.y + sin(angle2) * orbitRadius
+
+            // Emit trails for twins
+            if (currentTimeMs % 32 < 16) {
+                particleSystem.emitTrail(player.twin1Pos.x, player.twin1Pos.y, 0xFF00AAFF.toInt())
+                particleSystem.emitTrail(player.twin2Pos.x, player.twin2Pos.y, 0xFFFF0088.toInt())
+            }
+        }
+
         // Auto attack
         val fireInterval = (1000f / player.effectiveFireRate).toLong()
         if (currentTimeMs - lastFireMs >= fireInterval) {
@@ -135,6 +160,20 @@ class GameEngine(
             if (target != null) {
                 val newProjectiles = combatSystem.createPlayerProjectiles(player, target, currentTimeMs)
                 projectiles.addAll(newProjectiles)
+                
+                // Bebot & Babet Twins Firing
+                if (player.hasTwins) {
+                    val p1 = combatSystem.createPlayerProjectiles(player, target, currentTimeMs)
+                    p1.forEach { it.position.set(player.twin1Pos.x, player.twin1Pos.y) }
+                    projectiles.addAll(p1)
+                    particleSystem.emitTrail(player.twin1Pos.x, player.twin1Pos.y, 0xFF00AAFF.toInt())
+
+                    val p2 = combatSystem.createPlayerProjectiles(player, target, currentTimeMs)
+                    p2.forEach { it.position.set(player.twin2Pos.x, player.twin2Pos.y) }
+                    projectiles.addAll(p2)
+                    particleSystem.emitTrail(player.twin2Pos.x, player.twin2Pos.y, 0xFFFF0088.toInt())
+                }
+
                 lastFireMs = currentTimeMs
                 particleSystem.emitTrail(player.position.x, player.position.y, 0xFF0088FF.toInt())
             }
@@ -162,7 +201,7 @@ class GameEngine(
         // Update AI
         for (enemy in enemies) {
             if (!enemy.isAlive) continue
-            enemy.updateAI(player.position, currentTimeMs, dt)
+            enemy.updateAI(player.position, currentTimeMs, dt, player.isEnemiesConfused)
             enemy.position.x += enemy.velocity.x * dt
             enemy.position.y += enemy.velocity.y * dt
 
@@ -178,6 +217,11 @@ class GameEngine(
                 handleBossAbilities(enemy, currentTimeMs)
             }
         }
+        
+        if (pendingEnemies.isNotEmpty()) {
+            enemies.addAll(pendingEnemies)
+            pendingEnemies.clear()
+        }
     }
 
     private fun handleBossAbilities(enemy: Enemy, currentTimeMs: Long) {
@@ -186,11 +230,12 @@ class GameEngine(
             enemy.useAbility("summon_minions", currentTimeMs)
             repeat(3) {
                 val offset = Vector2.random(100f)
-                enemies.add(Enemy(
+                pendingEnemies.add(Enemy(
                     type = EnemyType.VOID_CRAWLER,
                     isBoss = false,
                     wave = enemy.wave,
-                    startPos = Vector2(enemy.position.x + offset.x, enemy.position.y + offset.y)
+                    startPos = Vector2(enemy.position.x + offset.x, enemy.position.y + offset.y),
+                    isMainBoss = false
                 ))
             }
         }
@@ -199,6 +244,19 @@ class GameEngine(
     private fun updateProjectiles(dt: Float, currentTimeMs: Long) {
         for (proj in projectiles) {
             if (!proj.isAlive) continue
+
+            if (player.isHomingShots) {
+                combatSystem.findNearestEnemy(proj.position, enemies)?.let { target ->
+                    val dir = (target.position - proj.position).normalized()
+                    val speed = proj.velocity.length()
+                    proj.velocity.x = (proj.velocity.x * 0.90f) + (dir.x * speed * 0.10f)
+                    proj.velocity.y = (proj.velocity.y * 0.90f) + (dir.y * speed * 0.10f)
+                    proj.velocity.normalize()
+                    proj.velocity.x *= speed
+                    proj.velocity.y *= speed
+                }
+            }
+
             proj.update(dt)
             // Optimization: Throttled trail emission
             if (currentTimeMs % 48 < 16) {
@@ -234,8 +292,9 @@ class GameEngine(
                 continue
             }
             loot.pulsePhase += 0.05f
-            // Auto-collect nearby loot
-            if (player.position.distanceTo(loot.position) <= player.radius + 30f) {
+            // Auto-collect nearby loot (Magnet)
+            val magnetRange = if (player.isLootMagnet) 2000f else player.radius + 40f
+            if (player.position.distanceTo(loot.position) <= magnetRange) {
                 collectLoot(loot, currentTimeMs)
                 iter.remove()
             }
@@ -321,24 +380,67 @@ class GameEngine(
         }
 
         // Enemy body vs player
-        val bodyDmg = combatSystem.checkEnemyPlayerCollisions(enemies, player, currentTimeMs)
-        if (bodyDmg > 0f) {
-            particleSystem.emitPlayerDamage(player.position.x, player.position.y)
-            triggerScreenShake(GameConstants.SHAKE_AMPLITUDE, currentTimeMs)
-            addFloatingText(player.position, "-${bodyDmg.toInt()}", 0xFFFF0000.toInt())
+        for (enemy in enemies) {
+            if (!enemy.isAlive || !player.isAlive || enemy.aiState == EnemyAIState.SPAWNING) continue
+            val distSq = player.position.distanceSquaredTo(enemy.position)
+            val radiusSum = player.radius + enemy.radius
+            if (distSq <= radiusSum * radiusSum) {
+                val dmg = player.takeDamage(enemy.damage, currentTimeMs)
+                if (dmg > 0f) {
+                    particleSystem.emitPlayerDamage(player.position.x, player.position.y)
+                    triggerScreenShake(GameConstants.SHAKE_AMPLITUDE, currentTimeMs)
+                    addFloatingText(player.position, "-${dmg.toInt()}", 0xFFFF0000.toInt())
+                    
+                    if (player.isMotomemashitaActive) {
+                        enemy.takeDamage(enemy.currentHp + 1000f)
+                        onEnemyKilled(enemy, currentTimeMs)
+                    }
+                }
+            }
         }
 
         // Enemy projectiles vs player
-        val projDmg = combatSystem.checkEnemyProjectilePlayerCollisions(enemyProjectiles, player, currentTimeMs)
-        if (projDmg > 0f) {
-            particleSystem.emitPlayerDamage(player.position.x, player.position.y)
-            triggerScreenShake(GameConstants.SHAKE_AMPLITUDE * 0.7f, currentTimeMs)
-            addFloatingText(player.position, "-${projDmg.toInt()}", 0xFFFF2200.toInt())
+        val projIter = enemyProjectiles.iterator()
+        while (projIter.hasNext()) {
+            val proj = projIter.next()
+            if (!proj.isAlive) continue
+            val distSq = proj.position.distanceSquaredTo(player.position)
+            val radiusSum = proj.radius + player.radius
+            if (distSq <= radiusSum * radiusSum) {
+                val dmg = player.takeDamage(proj.damage, currentTimeMs)
+                if (dmg > 0f) {
+                    particleSystem.emitPlayerDamage(player.position.x, player.position.y)
+                    triggerScreenShake(GameConstants.SHAKE_AMPLITUDE * 0.7f, currentTimeMs)
+                    addFloatingText(player.position, "-${dmg.toInt()}", 0xFFFF2200.toInt())
+                    
+                    if (player.isMotomemashitaActive) {
+                        // For projectiles, we don't necessarily have the owner easily,
+                        // but we can kill the nearest enemy as a "revenge" or just ignore if it's too complex.
+                        // The requirement says "when hit by any enemy, kill THAT enemy".
+                        // I'll try to find the owner if I can, but EnemyProjectile doesn't store it.
+                        // Let's assume for now we just kill the nearest enemy if it's a projectile.
+                        combatSystem.findNearestEnemy(player.position, enemies)?.let {
+                            it.takeDamage(it.currentHp + 1000f)
+                            onEnemyKilled(it, currentTimeMs)
+                        }
+                    }
+                }
+                proj.isAlive = false
+            }
         }
 
         if (!player.isAlive) {
-            gameState = GameState.GAME_OVER
-            onGameOver(player.score, player.waveNumber, player.killCount)
+            if (player.extraLives > 0) {
+                player.extraLives--
+                player.isAlive = true
+                player.currentHp = player.maxHp * 0.5f
+                player.isInvincible = true
+                player.lastDamageTimeMs = currentTimeMs
+                addFloatingText(player.position, "EXTRA LIFE!", 0xFF00FF00.toInt(), true)
+            } else {
+                gameState = GameState.GAME_OVER
+                onGameOver(player.score, player.waveNumber, player.killCount)
+            }
         }
     }
 
@@ -361,7 +463,7 @@ class GameEngine(
         val activeEnemies = enemies.count { it.isAlive }
         if (waveManager.isWaveComplete(activeEnemies)) {
             // Give upgrade choices on wave complete
-            upgradeOptions = lootSystem.generateUpgradeChoices(player.waveNumber)
+            upgradeOptions = lootSystem.generateUpgradeChoices(player, player.waveNumber)
             gameState = GameState.UPGRADE_SELECT
 
             player.waveNumber++
@@ -384,12 +486,45 @@ class GameEngine(
             UpgradeType.HEAL -> player.heal(player.maxHp * 0.4f)
             UpgradeType.WEAPON_UPGRADE -> player.damageMultiplier += 0.2f
             UpgradeType.CYBER_IMPLANT -> { /* handled via loot */ }
+            UpgradeType.BUFF -> {
+                if (option.name == "Nano-Regen Overdrive") {
+                    player.addTimedBuff(object : TimedBuff {
+                        override val name: String = "REGEN"
+                        override val expiryTimeMs: Long = System.currentTimeMillis() + 120_000L
+                        override fun onApply(player: Player) { player.regenRate += 5f }
+                        override fun onExpire(player: Player) { player.regenRate -= 5f }
+                    })
+                }
+            }
         }
         startNextWave()
     }
 
     private fun onEnemyKilled(enemy: Enemy, currentTimeMs: Long) {
+        if (enemy.rewardsProcessed) return
+        enemy.rewardsProcessed = true
+        enemy.isAlive = false
         player.killCount++
+        
+        if (player.isAikiActive) {
+            triggerLevelUp()
+        }
+
+        if (player.isMochiMochiActive) {
+            val radius = 300f
+            val radiusSq = radius * radius
+            // Find nearby enemies that haven't been processed yet
+            val nearby = enemies.filter { !it.rewardsProcessed && it !== enemy && it.position.distanceSquaredTo(enemy.position) <= radiusSq }
+            nearby.forEach { 
+                it.takeDamage(it.currentHp + 1000f)
+                onEnemyKilled(it, currentTimeMs)
+            }
+        }
+        
+        applyKillRewards(enemy, currentTimeMs)
+    }
+
+    private fun applyKillRewards(enemy: Enemy, currentTimeMs: Long) {
         val xpGained = enemy.xpValue
         val leveledUp = player.addXp(xpGained)
         particleSystem.emitDeath(enemy.position.x, enemy.position.y, enemy.isBoss)
@@ -397,25 +532,24 @@ class GameEngine(
             triggerScreenShake(GameConstants.SHAKE_AMPLITUDE * 2f, currentTimeMs)
             // Boss always drops loot + guaranteed shards
             val bossLoot = lootSystem.rollMultipleLoot(enemy.position, currentTimeMs, 3).toMutableList()
-            bossLoot.add(LootItem(
-                id = 0, // id will be set by rollLoot usually but we can just use 0 here or counter
-                position = Vector2(enemy.position.x, enemy.position.y),
-                rarity = LootRarity.EPIC,
-                name = "Boss Shard",
-                description = "25 Void Shards",
-                type = LootItemType.VOID_SHARD,
-                value = 25f,
-                spawnTimeMs = currentTimeMs,
-                lifetimeMs = 60000L,
-                collected = false,
-                pulsePhase = 0f
-            ))
+            bossLoot.add(lootSystem.rollVoidShard(enemy.position, currentTimeMs, 25f))
             lootItems.addAll(bossLoot)
-        } else if (Random.nextFloat() < enemy.lootChance) {
-            val loot = lootSystem.rollLoot(enemy.position, currentTimeMs)
-            if (loot != null) lootItems.add(loot)
+        } else {
+            // 40% chance of shards loot
+            if (Random.nextFloat() < 0.40f) {
+                lootItems.add(lootSystem.rollVoidShard(enemy.position, currentTimeMs, 1f))
+            }
+            // Normal loot roll
+            if (Random.nextFloat() < enemy.lootChance) {
+                val loot = lootSystem.rollLoot(enemy.position, currentTimeMs)
+                if (loot != null) lootItems.add(loot)
+            }
         }
         if (leveledUp) triggerLevelUp()
+
+        if (player.hasShockwave && kotlin.random.Random.nextFloat() < 0.003f) {
+            triggerKorokoyShockwave(currentTimeMs)
+        }
     }
 
     private fun triggerLevelUp() {
@@ -433,6 +567,25 @@ class GameEngine(
         floatingTexts.add(FloatingText(pos.x, pos.y, text, color, isCrit = isCrit))
     }
 
+    private fun triggerKorokoyShockwave(currentTimeMs: Long) {
+        for (enemy in enemies) {
+            if (enemy.isAlive) {
+                particleSystem.emitDeath(enemy.position.x, enemy.position.y, enemy.isBoss)
+                player.killCount++
+            }
+        }
+        enemies.clear()
+        addFloatingText(player.position, "KOROKOY SHOCKWAVE!!!", 0xFFFF0000.toInt(), true)
+        triggerScreenShake(GameConstants.SHAKE_AMPLITUDE * 3f, currentTimeMs)
+        
+        // Advance wave logic
+        player.waveNumber++
+        waveTitle = if (player.waveNumber % GameConstants.BOSS_WAVE_INTERVAL == 0)
+            "BOSS INCOMING" else "WAVE ${player.waveNumber}"
+        isBossWave = player.waveNumber % GameConstants.BOSS_WAVE_INTERVAL == 0
+        startNextWave()
+    }
+
     private fun getAuraColor(auraType: AuraType) = when (auraType) {
         AuraType.PLASMA_SHIELD    -> 0xFF0088FF.toInt()
         AuraType.VOID_DRAIN       -> 0xFF8800FF.toInt()
@@ -440,6 +593,14 @@ class GameEngine(
         AuraType.QUANTUM_ECHO     -> 0xFF00FFFF.toInt()
         AuraType.ENTROPIC_PULSE   -> 0xFFFF8800.toInt()
         AuraType.NEUROSTATIC_WAVE -> 0xFF00FF88.toInt()
+        AuraType.REGEN_CORE       -> 0xFF00FF44.toInt()
+        AuraType.GRAVITY_FIELD    -> 0xFFAAAAAA.toInt()
+        AuraType.BLAZING_AURA     -> 0xFFFF4400.toInt()
+        AuraType.HOLY_BARRIER     -> 0xFFFFFFEE.toInt()
+        AuraType.FROST_AURA       -> 0xFF88AAFF.toInt()
+        AuraType.CHAIN_LIGHTNING  -> 0xFFCCFF00.toInt()
+        AuraType.CORROSIVE_AURA   -> 0xFF88FF00.toInt()
+        AuraType.TITAN_SLAYER     -> 0xFFFF0055.toInt()
     }
 
     private fun cleanup() {

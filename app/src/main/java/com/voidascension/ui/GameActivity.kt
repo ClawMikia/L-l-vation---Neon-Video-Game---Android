@@ -24,9 +24,20 @@ import javax.inject.Inject
 class GameActivity : AppCompatActivity() {
 
     @Inject lateinit var saveManager: SaveManager
+    @Inject lateinit var cheatManager: com.voidascension.data.CheatManager
     private lateinit var binding: ActivityGameBinding
     private var engine: GameEngine? = null
     private var lastSnapshotState = GameState.PLAYING
+    private var shardsSavedThisRun = 0
+
+    private fun saveShardsPermanently() {
+        val currentShards = engine?.player?.collectedVoidShards ?: 0
+        val newShards = currentShards - shardsSavedThisRun
+        if (newShards > 0) {
+            saveManager.addVoidShards(newShards)
+            shardsSavedThisRun = currentShards
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,7 +86,39 @@ class GameActivity : AppCompatActivity() {
         val permanentUpgrades = saveManager.getActiveUpgrades()
         engine!!.player.applyPermanentUpgrades(permanentUpgrades)
 
+        applyCheats()
+
         engine!!.start(lifecycleScope)
+    }
+
+    private fun applyCheats() {
+        val p = engine!!.player
+        if (cheatManager.isLaFierceActive) {
+            p.extraLives = 25
+        }
+        if (cheatManager.isMauragPoAkoActive) {
+            // Max stats & all mutations
+            p.maxHp += 1000f
+            p.currentHp = p.maxHp
+            p.damageMultiplier += 5f
+            p.fireRateMultiplier += 2f
+            p.speedMultiplier += 1f
+            MutationType.entries.forEach { p.applyMutation(it) }
+            AuraType.entries.forEach { p.addAura(it) }
+            p.auras.forEach { it.level = 10 }
+        }
+        if (cheatManager.isAikiActive) {
+            p.isAikiActive = true
+        }
+        if (cheatManager.isMochiMochiActive) {
+            p.isMochiMochiActive = true
+        }
+        if (cheatManager.isMotomemashitaActive) {
+            p.isMotomemashitaActive = true
+        }
+        
+        // Reset them for next run as they are "one gameplay only"
+        cheatManager.resetTemporaryCheats()
     }
 
     private fun setupJoysticks() {
@@ -188,6 +231,7 @@ class GameActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         engine?.pause()
+        saveShardsPermanently()
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
@@ -201,6 +245,7 @@ class GameActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        saveShardsPermanently()
         engine?.stop()
     }
 }

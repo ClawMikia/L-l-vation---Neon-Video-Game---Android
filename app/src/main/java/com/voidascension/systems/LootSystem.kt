@@ -58,6 +58,19 @@ class LootSystem {
         ))
     )
 
+    fun rollVoidShard(position: Vector2, currentTimeMs: Long, value: Float): LootItem {
+        return LootItem(
+            id = idCounter++,
+            position = position.copy(),
+            rarity = if (value >= 10f) LootRarity.RARE else LootRarity.COMMON,
+            name = "Void Shard",
+            description = "+${value.toInt()} Shards",
+            type = LootItemType.VOID_SHARD,
+            value = value,
+            spawnTimeMs = currentTimeMs
+        )
+    }
+
     fun rollLoot(position: Vector2, currentTimeMs: Long, isBoss: Boolean = false): LootItem? {
         val rarity = rollRarity(isBoss)
         val table = lootTables[rarity] ?: return null
@@ -116,11 +129,13 @@ class LootSystem {
         return items.last()
     }
 
-    fun generateUpgradeChoices(wave: Int): List<UpgradeOption> {
+    fun generateUpgradeChoices(player: com.voidascension.entities.Player, wave: Int): List<UpgradeOption> {
         val allOptions = mutableListOf<UpgradeOption>()
 
-        // Add mutation choices
-        MutationType.entries.forEach { mutation ->
+        // Add mutation choices - filter out ones player already has
+        MutationType.entries.filter { mutation -> 
+            !player.mutations.contains(mutation) 
+        }.forEach { mutation ->
             allOptions.add(UpgradeOption(
                 type = UpgradeType.MUTATION,
                 mutationType = mutation,
@@ -130,8 +145,11 @@ class LootSystem {
             ))
         }
 
-        // Add aura choices
-        AuraType.entries.forEach { aura ->
+        // Add aura choices - filter out ones player already has at max level or just any level?
+        // Let's assume one-time for now as requested
+        AuraType.entries.filter { aura ->
+            player.auras.none { it.type == aura }
+        }.forEach { aura ->
             allOptions.add(UpgradeOption(
                 type = UpgradeType.AURA,
                 auraType = aura,
@@ -147,6 +165,14 @@ class LootSystem {
             name = "Emergency Repair",
             description = "Restore 40% max HP",
             rarity = LootRarity.COMMON
+        ))
+
+        // New: Regeneration Buff for 2 minutes
+        allOptions.add(UpgradeOption(
+            type = UpgradeType.BUFF,
+            name = "Nano-Regen Overdrive",
+            description = "Regenerate 5 HP/sec for 120 seconds",
+            rarity = LootRarity.EPIC
         ))
 
         // Shuffle and return 3
@@ -197,6 +223,14 @@ class LootSystem {
         AuraType.QUANTUM_ECHO     -> "Quantum Echo"
         AuraType.ENTROPIC_PULSE   -> "Entropic Pulse"
         AuraType.NEUROSTATIC_WAVE -> "Neurostatic Wave"
+        AuraType.REGEN_CORE       -> "Regen Core"
+        AuraType.GRAVITY_FIELD    -> "Gravity Field"
+        AuraType.BLAZING_AURA     -> "Blazing Aura"
+        AuraType.HOLY_BARRIER     -> "Holy Barrier"
+        AuraType.FROST_AURA       -> "Frost Aura"
+        AuraType.CHAIN_LIGHTNING  -> "Chain Lightning"
+        AuraType.CORROSIVE_AURA   -> "Corrosive Aura"
+        AuraType.TITAN_SLAYER     -> "Titan Slayer"
     }
 
     private fun getAuraDesc(type: AuraType) = when (type) {
@@ -206,6 +240,14 @@ class LootSystem {
         AuraType.QUANTUM_ECHO     -> "Echo 25% of damage dealt"
         AuraType.ENTROPIC_PULSE   -> "Burst damage pulse every 3s"
         AuraType.NEUROSTATIC_WAVE -> "Stun nearby enemies briefly"
+        AuraType.REGEN_CORE       -> "Passive health regeneration"
+        AuraType.GRAVITY_FIELD    -> "Pulls and slows enemies"
+        AuraType.BLAZING_AURA     -> "Burns nearby enemies"
+        AuraType.HOLY_BARRIER     -> "Damage reduction and minor heal"
+        AuraType.FROST_AURA       -> "Attacks slow enemies"
+        AuraType.CHAIN_LIGHTNING  -> "Attacks have chance to chain"
+        AuraType.CORROSIVE_AURA   -> "Attacks deal bonus damage"
+        AuraType.TITAN_SLAYER     -> "Bonus damage against bosses"
     }
 }
 
@@ -220,5 +262,5 @@ data class UpgradeOption(
 )
 
 enum class UpgradeType {
-    MUTATION, AURA, CYBER_IMPLANT, HEAL, WEAPON_UPGRADE
+    MUTATION, AURA, CYBER_IMPLANT, HEAL, WEAPON_UPGRADE, BUFF
 }

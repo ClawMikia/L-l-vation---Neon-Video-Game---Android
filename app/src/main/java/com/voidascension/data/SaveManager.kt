@@ -66,9 +66,10 @@ data class PermanentUpgrade(
     val description: String,
     val baseCost: Int,
     val level: Int = 0,
-    val maxLevel: Int = 10
+    val maxLevel: Int = 10,
+    val isEpic: Boolean = false
 ) {
-    val cost: Int get() = (baseCost * Math.pow(1.6, level.toDouble())).toInt()
+    val cost: Int get() = if (isEpic) baseCost else (baseCost * Math.pow(1.6, level.toDouble())).toInt()
 }
 
 data class BestScore(val score: Int, val wave: Int, val kills: Int)
@@ -90,7 +91,18 @@ class SaveManager @Inject constructor(
         PermanentUpgrade("extra_proj",  "Twin Core",           "+1 Projectile (Lv.5, 10)",  500, maxLevel = 2),
         PermanentUpgrade("life_steal",  "Vampiric Nanites",    "+2% Life Steal per level",  150),
         PermanentUpgrade("crit_start",  "Precision Implant",   "+5% Crit Chance per level", 120),
-        PermanentUpgrade("fire_rate",   "Overdrive Module",    "+10% Fire Rate per level",  180)
+        PermanentUpgrade("fire_rate",   "Overdrive Module",    "+10% Fire Rate per level",  180),
+
+        // Epic Upgrades
+        PermanentUpgrade("epic_kokey", "Kokey", "1 shot, 1 kill (except bosses)", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_kekay", "Kekay", "Vaccum / Magnets all nearby loots", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_umamay", "Umamay Kakay", "Extra life when killed", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_kokoy", "Kokoy", "All enemies are confused where target is", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_sukhoi", "Sukhoi SU-47 Berkut", "Homing / following shots", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_king_cone", "King Cone", "Ultimate overall aura / mutation", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_bebot", "Bebot & Babet", "Twin player look-alikes helping you", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_korokoy", "Korokoy", "Shockwave destroys wave & jumps ahead", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_maurag", "Maurag Supermacy", "All mutations are now acquired", 15000, maxLevel = 1, isEpic = true)
     )
 
     fun getVoidShards(): Int = prefs.getInt("void_shards_total", 0)

@@ -211,6 +211,21 @@
             app:backgroundTint="#0A0F1E"
             app:strokeColor="#FF4444"
             app:strokeWidth="2dp"
+            app:cornerRadius="4dp"
+            android:layout_marginBottom="14dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCheats"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="⌨  AUTH BYPASS"
+            android:fontFamily="monospace"
+            android:textSize="16sp"
+            android:maxLines="1"
+            android:textColor="#00FFFF"
+            app:backgroundTint="#0A0F1E"
+            app:strokeColor="#00FFFF"
+            app:strokeWidth="2dp"
             app:cornerRadius="4dp"/>
     </LinearLayout>
 

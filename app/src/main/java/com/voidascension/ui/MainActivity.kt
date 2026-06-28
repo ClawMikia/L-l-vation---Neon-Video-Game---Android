@@ -20,6 +20,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var saveManager: com.voidascension.data.SaveManager
 
+    @Inject
+    lateinit var cheatManager: com.voidascension.data.CheatManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -50,6 +53,38 @@ class MainActivity : AppCompatActivity() {
             showPrestigeConfirmation()
         }
         binding.btnQuit.setOnClickListener { finishAffinity() }
+        binding.btnCheats.setOnClickListener { showCheatDialog() }
+    }
+
+    private fun showCheatDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_cheat, null)
+        val etCheatCode = dialogView.findViewById<android.widget.EditText>(R.id.etCheatCode)
+        val btnAuth = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAuthenticate)
+        val btnAbort = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAbort)
+
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(dialogView)
+        dialog.window?.let { window ->
+            window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            window.setLayout(
+                (resources.displayMetrics.density * 320).toInt(),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            window.setGravity(android.view.Gravity.CENTER)
+        }
+
+        btnAuth.setOnClickListener {
+            val code = etCheatCode.text.toString().trim()
+            if (code.isNotEmpty()) {
+                val response = cheatManager.activateCheat(code, saveManager)
+                Toast.makeText(this, response, Toast.LENGTH_LONG).show()
+                dialog.dismiss()
+            }
+        }
+
+        btnAbort.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
     }
 
     private fun showPrestigeConfirmation() {

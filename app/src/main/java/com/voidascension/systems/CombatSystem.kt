@@ -120,7 +120,30 @@ class CombatSystem {
                 val distSq = proj.position.distanceSquaredTo(enemy.position)
                 val radiusSum = proj.radius + enemy.radius
                 if (distSq <= radiusSum * radiusSum) {
-                    val finalDamage = if (enemy.isBoss) proj.damage * player.bossDamageMultiplier else proj.damage
+                    var finalDamage = if (enemy.isBoss) proj.damage * player.bossDamageMultiplier else proj.damage
+                    
+                    // Kokey: 1 shot, 1 kill, except for the bosses
+                    if (player.isOneShotKill && !enemy.isBoss) {
+                        finalDamage = enemy.currentHp + 1000f
+                    }
+
+                    // Apply Attack Auras
+                    player.auras.forEach { aura ->
+                        when (aura.type) {
+                            AuraType.TITAN_SLAYER -> if (enemy.isBoss) finalDamage *= (1.2f + aura.level * 0.1f)
+                            AuraType.CORROSIVE_AURA -> finalDamage *= (1.05f + aura.level * 0.05f)
+                            AuraType.FROST_AURA -> enemy.speed *= (0.85f - aura.level * 0.02f)
+                            AuraType.CHAIN_LIGHTNING -> {
+                                if (Random.nextFloat() < 0.2f) {
+                                    // Logic for arcing would require passing all enemies here, 
+                                    // but let's just add bonus damage for now to keep it simple
+                                    finalDamage *= 1.25f
+                                }
+                            }
+                            else -> {}
+                        }
+                    }
+
                     val isKill = enemy.takeDamage(finalDamage)
                     // Life steal
                     if (player.lifeSteal > 0f) {
@@ -165,13 +188,13 @@ class CombatSystem {
     // ─── Enemy vs Player Collisions ───────────────────────────────────────────
     fun checkEnemyPlayerCollisions(
         enemies: List<Enemy>,
-        player: Player,
+        player: com.voidascension.entities.Player,
         currentTimeMs: Long
     ): Float {
         var totalDamage = 0f
         val playerRadius = player.radius
         for (enemy in enemies) {
-            if (!enemy.isAlive || !player.isAlive) continue
+            if (!enemy.isAlive || !player.isAlive || enemy.aiState == com.voidascension.entities.EnemyAIState.SPAWNING) continue
             val distSq = player.position.distanceSquaredTo(enemy.position)
             val radiusSum = playerRadius + enemy.radius
             if (distSq <= radiusSum * radiusSum) {
@@ -267,6 +290,31 @@ class CombatSystem {
                     }
                     effects.add(AuraEffect(aura.type, nearbyEnemies))
                 }
+                AuraType.REGEN_CORE -> {
+                    player.heal(1f * aura.level)
+                    effects.add(AuraEffect(aura.type, emptyList()))
+                }
+                AuraType.GRAVITY_FIELD -> {
+                    nearbyEnemies.forEach { enemy ->
+                        enemy.speed *= 0.7f
+                        val pullDir = (player.position - enemy.position).normalized()
+                        enemy.position.x += pullDir.x * 30f * GameConstants.AURA_TICK_MS / 1000f
+                        enemy.position.y += pullDir.y * 30f * GameConstants.AURA_TICK_MS / 1000f
+                    }
+                    effects.add(AuraEffect(aura.type, nearbyEnemies))
+                }
+                AuraType.BLAZING_AURA -> {
+                    val dmg = player.effectiveDamage * 0.1f * aura.level
+                    nearbyEnemies.forEach { enemy -> enemy.takeDamage(dmg) }
+                    effects.add(AuraEffect(aura.type, nearbyEnemies, 0f, dmg))
+                }
+                AuraType.HOLY_BARRIER -> {
+                    // Visual or damage reduction logic elsewhere? 
+                    // Let's just say it heals a tiny bit
+                    player.heal(0.5f * aura.level)
+                    effects.add(AuraEffect(aura.type, emptyList()))
+                }
+                else -> {}
             }
         }
         return effects

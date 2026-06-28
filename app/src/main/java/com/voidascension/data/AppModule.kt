@@ -29,4 +29,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideSaveManager(@ApplicationContext ctx: Context, db: VoidDatabase) = SaveManager(ctx, db)
+
+    @Provides
+    @Singleton
+    fun provideCheatManager() = CheatManager()
 }

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="320dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@drawable/bg_cyberpunk_card">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⌨ NEURAL BYPASS INTERFACE"
+        android:textColor="@color/alien_cyan"
+        android:textSize="18sp"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp"
+        android:shadowColor="@color/alien_cyan"
+        android:shadowRadius="8"/>
+
+    <EditText
+        android:id="@+id/etCheatCode"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:hint="ENTER BYPASS CODE"
+        android:textColor="@color/alien_green"
+        android:textColorHint="#6639FF14"
+        android:fontFamily="monospace"
+        android:textSize="14sp"
+        android:background="#1A39FF14"
+        android:padding="12dp"
+        android:inputType="text"
+        android:maxLines="1"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:layout_marginBottom="24dp"
+        android:autofillHints="none"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAuthenticate"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="AUTHENTICATE"
+        android:fontFamily="monospace"
+        android:textColor="@color/alien_green"
+        app:backgroundTint="#0A0F1E"
+        app:strokeColor="@color/alien_green"
+        app:strokeWidth="2dp"
+        app:cornerRadius="4dp"
+        android:layout_marginBottom="12dp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAbort"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="ABORT"
+        android:fontFamily="monospace"
+        android:textColor="#FF4444"
+        app:backgroundTint="#0A0F1E"
+        app:strokeColor="#FF4444"
+        app:strokeWidth="2dp"
+        app:cornerRadius="4dp"/>
+
+</LinearLayout>

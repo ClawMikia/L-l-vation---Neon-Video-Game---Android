@@ -73,7 +73,10 @@ class GameRenderer @JvmOverloads constructor(
                     path.lineTo(-0.7f, 0f)
                     path.close()
                 }
-                EnemyType.VOID_TITAN, EnemyType.ELDRITCH_HORROR, EnemyType.COSMIC_GOD -> {
+                EnemyType.VOID_TITAN, EnemyType.ELDRITCH_HORROR, EnemyType.COSMIC_GOD,
+                EnemyType.STAR_EATER_TITAN, EnemyType.GALAXY_TITAN, EnemyType.ENTROPY_KING,
+                EnemyType.PRIME_SINGULARITY, EnemyType.DIMENSIONAL_GOD, EnemyType.VOID_ARCHON -> {
+                    // Large Hexagon for Titans
                     for (i in 0..5) {
                         val angle = i * PI.toFloat() / 3f
                         val px = cos(angle)
@@ -81,6 +84,50 @@ class GameRenderer @JvmOverloads constructor(
                         if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
                     }
                     path.close()
+                }
+                EnemyType.SHADOW_STALKER, EnemyType.RIFT_STALKER, EnemyType.NEBULA_WRAITH -> {
+                    // Sharp Blade shape
+                    path.moveTo(0f, -1.2f)
+                    path.lineTo(0.4f, 0.4f)
+                    path.lineTo(0f, 0.1f)
+                    path.lineTo(-0.4f, 0.4f)
+                    path.close()
+                }
+                EnemyType.ASTEROID_GOLEM, EnemyType.QUANTUM_GOLEM, EnemyType.NEUTRON_BEAST -> {
+                    // Blocky irregular shape
+                    path.moveTo(-0.7f, -0.7f)
+                    path.lineTo(0.8f, -0.6f)
+                    path.lineTo(0.9f, 0.8f)
+                    path.lineTo(-0.5f, 0.9f)
+                    path.lineTo(-0.8f, 0.2f)
+                    path.close()
+                }
+                EnemyType.VOID_EEL, EnemyType.COSMIC_SERPENT, EnemyType.NEBULA_DRAGON -> {
+                    // Long wavy shape
+                    path.moveTo(0f, -1.2f)
+                    path.quadTo(0.5f, -0.6f, 0f, 0f)
+                    path.quadTo(-0.5f, 0.6f, 0f, 1.2f)
+                    path.lineTo(0.2f, 1.1f)
+                    path.quadTo(-0.3f, 0.6f, 0.2f, 0f)
+                    path.quadTo(0.7f, -0.6f, 0.2f, -1.1f)
+                    path.close()
+                }
+                EnemyType.PHOTON_WRAITH, EnemyType.PLASMA_REAPAR, EnemyType.SOLAR_FLARE -> {
+                    // Starburst
+                    for (i in 0..7) {
+                        val a = i * PI.toFloat() / 4f
+                        val r = if (i % 2 == 0) 1.2f else 0.4f
+                        val px = cos(a) * r
+                        val py = sin(a) * r
+                        if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
+                    }
+                    path.close()
+                }
+                EnemyType.NEURAL_HIVE, EnemyType.GRAVITY_WELLER, EnemyType.ANTIMATTER_CORE -> {
+                    // Concentric circles/rings
+                    path.addCircle(0f, 0f, 1f, Path.Direction.CW)
+                    path.addCircle(0f, 0f, 0.6f, Path.Direction.CCW)
+                    path.addCircle(0f, 0f, 0.3f, Path.Direction.CW)
                 }
                 else -> {
                     path.addCircle(0f, 0f, 1f, Path.Direction.CW)
@@ -225,6 +272,23 @@ class GameRenderer @JvmOverloads constructor(
             drawEnemyProjectiles(canvas, snap)
             drawProjectiles(canvas, snap)
             drawPlayer(canvas, snap)
+            
+            // Twins Revolve Animation
+            if (snap.player.hasTwins) {
+                val orbitSpeed = 4.0f
+                val orbitRadius = 110f
+                val angle1 = time * orbitSpeed
+                val angle2 = angle1 + PI.toFloat()
+                
+                val t1x = snap.player.position.x + cos(angle1) * orbitRadius
+                val t1y = snap.player.position.y + sin(angle1) * orbitRadius
+                drawTwin(canvas, snap, t1x, t1y, 0xFF00AAFF.toInt())
+
+                val t2x = snap.player.position.x + cos(angle2) * orbitRadius
+                val t2y = snap.player.position.y + sin(angle2) * orbitRadius
+                drawTwin(canvas, snap, t2x, t2y, 0xFFFF0088.toInt())
+            }
+
             drawParticles(canvas, snap)
             drawFloatingTexts(canvas, snap)
             drawHUD(canvas, snap)
@@ -268,6 +332,14 @@ class GameRenderer @JvmOverloads constructor(
                 com.voidascension.engine.AuraType.QUANTUM_ECHO     -> 0xFF00FFFF.toInt()
                 com.voidascension.engine.AuraType.ENTROPIC_PULSE   -> 0xFFFF8800.toInt()
                 com.voidascension.engine.AuraType.NEUROSTATIC_WAVE -> 0xFF00FF88.toInt()
+                com.voidascension.engine.AuraType.REGEN_CORE       -> 0xFF00FF44.toInt()
+                com.voidascension.engine.AuraType.GRAVITY_FIELD    -> 0xFFAAAAAA.toInt()
+                com.voidascension.engine.AuraType.BLAZING_AURA     -> 0xFFFF4400.toInt()
+                com.voidascension.engine.AuraType.HOLY_BARRIER     -> 0xFFFFFFEE.toInt()
+                com.voidascension.engine.AuraType.FROST_AURA       -> 0xFF88AAFF.toInt()
+                com.voidascension.engine.AuraType.CHAIN_LIGHTNING  -> 0xFFCCFF00.toInt()
+                com.voidascension.engine.AuraType.CORROSIVE_AURA   -> 0xFF88FF00.toInt()
+                com.voidascension.engine.AuraType.TITAN_SLAYER     -> 0xFFFF0055.toInt()
             }
             val pulse = (sin(time * 3f + aura.level) * 0.15f + 0.85f)
             paint.style = Paint.Style.STROKE
@@ -419,6 +491,38 @@ class GameRenderer @JvmOverloads constructor(
             EnemyType.ABYSS_KNIGHT      -> 0xFF6600AA.toInt()
             EnemyType.PHASE_PHANTOM     -> 0xFF88FFFF.toInt()
             EnemyType.ELDRITCH_HORROR   -> 0xFFAA00FF.toInt()
+            // New categorized colors
+            EnemyType.SHADOW_STALKER    -> 0xFF222222.toInt()
+            EnemyType.PLASMA_REAPAR     -> 0xFFFF0055.toInt()
+            EnemyType.NEURAL_HIVE       -> 0xFF00FF88.toInt()
+            EnemyType.DIMENSION_RIPPER  -> 0xFF88FF00.toInt()
+            EnemyType.QUARK_GLUTTON     -> 0xFFFFAA00.toInt()
+            EnemyType.PHOTON_WRAITH     -> 0xFFFFFFFF.toInt()
+            EnemyType.CHRONO_EATER      -> 0xFF00AAFF.toInt()
+            EnemyType.PULSE_WITCH       -> 0xFFFF00AA.toInt()
+            EnemyType.ANTIMATTER_CORE    -> 0xFF440044.toInt()
+            EnemyType.NEUTRON_BEAST     -> 0xFF888888.toInt()
+            EnemyType.SOLAR_FLARE       -> 0xFFFFCC00.toInt()
+            EnemyType.VOID_EEL          -> 0xFF0066FF.toInt()
+            EnemyType.COMET_CRASH       -> 0xFFCCFFFF.toInt()
+            EnemyType.ASTEROID_GOLEM    -> 0xFF664422.toInt()
+            EnemyType.GALAXY_EATER      -> 0xFF220066.toInt()
+            EnemyType.NEBULA_DRAGON     -> 0xFF00CCFF.toInt()
+            EnemyType.DARK_ENERGY_WISP  -> 0xFF110022.toInt()
+            EnemyType.QUANTUM_GOLEM     -> 0xFF00FFFF.toInt()
+            EnemyType.SINGULARITY_SEED   -> 0xFF330033.toInt()
+            EnemyType.GRAVITY_WELLER    -> 0xFF5500FF.toInt()
+            // Bosses
+            EnemyType.PRIME_SINGULARITY -> 0xFF000000.toInt()
+            EnemyType.NEBULA_QUEEN      -> 0xFFCC00FF.toInt()
+            EnemyType.VOID_ARCHON       -> 0xFF6600FF.toInt()
+            EnemyType.STAR_EATER_TITAN  -> 0xFFFF8800.toInt()
+            EnemyType.CHRONOS_LORD      -> 0xFF00AAFF.toInt()
+            EnemyType.DIMENSIONAL_GOD   -> 0xFFFFFFFF.toInt()
+            EnemyType.OMEGA_PHANTOM     -> 0xFF00FFFF.toInt()
+            EnemyType.GALAXY_TITAN      -> 0xFF220066.toInt()
+            EnemyType.COSMIC_SERPENT    -> 0xFF00FF88.toInt()
+            EnemyType.ENTROPY_KING      -> 0xFFFF0000.toInt()
         }
     }
 
@@ -463,68 +567,67 @@ class GameRenderer @JvmOverloads constructor(
         
         val avatar = AvatarDefinitions.getAvatar(snap.avatarIndex)
 
-        // 1. Outer Atmospheric Glow
+        // 1. Glow (Matching AvatarSelectActivity)
         paint.style = Paint.Style.FILL
         paint.color = avatar.color
-        val pulse = (sin(time * 5f) * 0.2f + 1.0f)
-        paint.alpha = (if (p.isInvincible) (sin(time * 20f) * 40 + 60).toInt() else 30)
-        canvas.drawCircle(cx, cy, r * 2.5f * pulse, paint)
+        paint.alpha = if (p.isInvincible) (sin(time * 20f) * 40 + 60).toInt() else 50
+        canvas.drawCircle(cx, cy, r * 1.3f, paint)
 
-        // 2. Rotating Energy Rings
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 1.5f
-        paint.alpha = 100
+        // 2. Body Layers (Matching AvatarSelectActivity)
         canvas.save()
-        canvas.rotate(time * 30f, cx, cy)
-        canvas.drawOval(cx - r * 1.8f, cy - r * 0.5f, cx + r * 1.8f, cy + r * 0.5f, paint)
-        canvas.rotate(120f, cx, cy)
-        canvas.drawOval(cx - r * 1.8f, cy - r * 0.5f, cx + r * 1.8f, cy + r * 0.5f, paint)
-        canvas.restore()
-
-        // 3. Player Body (Multiple Layers)
-        canvas.save()
-        canvas.rotate(time * 20f, cx, cy)
+        canvas.rotate(time * 15f, cx, cy) // Subtle rotation for game feel
         
-        // Inner dark core
-        paint.alpha = 230
+        // Draw fill
         paint.style = Paint.Style.FILL
-        paint.color = 0xFF080B14.toInt() 
+        paint.color = avatar.color
+        paint.alpha = 100
         drawAvatarShape(canvas, avatar.shape, cx, cy, r, paint)
 
-        // Outer neon shell
+        // Draw shell stroke
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 3f
+        paint.strokeWidth = 4f
         paint.color = avatar.color
         paint.alpha = if (p.isInvincible) (sin(time * 20f) * 100 + 155).toInt() else 255
         drawAvatarShape(canvas, avatar.shape, cx, cy, r, paint)
         
-        // Inner secondary shell
-        canvas.rotate(-time * 40f, cx, cy)
-        paint.strokeWidth = 1f
-        paint.alpha = 150
-        drawAvatarShape(canvas, avatar.shape, cx, cy, r * 0.6f, paint)
-        
         canvas.restore()
 
-        // 4. Central Singularity
+        // 3. Central Dot (Matching AvatarSelectActivity)
         paint.style = Paint.Style.FILL
-        paint.color = 0xFFFFFFFF.toInt()
-        paint.alpha = (200 + sin(time * 10f) * 55).toInt()
-        canvas.drawCircle(cx, cy, r * 0.15f, paint)
-        
         paint.color = avatar.color
         paint.alpha = 255
-        canvas.drawCircle(cx, cy, r * 0.08f, paint)
+        canvas.drawCircle(cx, cy, r * 0.15f, paint)
 
-        // 5. Weapon System indicator (Orbiting)
+        // 4. Subtle Weapon System indicator
         val weaponAngle = time * 4f
-        val wx = cx + cos(weaponAngle) * (r * 1.2f)
-        val wy = cy + sin(weaponAngle) * (r * 1.2f)
+        val wx = cx + cos(weaponAngle) * (r * 1.5f)
+        val wy = cy + sin(weaponAngle) * (r * 1.5f)
         paint.color = getWeaponColor(p.weaponType)
+        paint.alpha = 180
+        canvas.drawCircle(wx, wy, 3f, paint)
+    }
+
+    private fun drawTwin(canvas: Canvas, snap: GameSnapshot, cx: Float, cy: Float, color: Int) {
+        val p = snap.player
+        val r = p.radius * 0.7f
+        
+        val avatar = AvatarDefinitions.getAvatar(snap.avatarIndex)
+
         paint.style = Paint.Style.FILL
-        canvas.drawCircle(wx, wy, 5f, paint)
-        paint.alpha = 100
-        canvas.drawCircle(wx, wy, 10f, paint)
+        paint.color = color
+        paint.alpha = 60
+        canvas.drawCircle(cx, cy, r * 1.3f, paint)
+
+        canvas.save()
+        canvas.rotate(time * 30f, cx, cy)
+        
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 3f
+        paint.color = color
+        paint.alpha = 200
+        drawAvatarShape(canvas, avatar.shape, cx, cy, r, paint)
+        
+        canvas.restore()
     }
 
     private fun drawAvatarShape(canvas: Canvas, shape: AvatarShape, cx: Float, cy: Float, r: Float, paint: Paint) {
@@ -643,25 +746,34 @@ class GameRenderer @JvmOverloads constructor(
 
         // Mutation indicators (bottom-left row)
         if (p.mutations.isNotEmpty()) {
-            val mutY = snap.screenHeight - 80f
-            textPaint.textSize = 18f
+            val mutY = snap.screenHeight - margin
+            textPaint.textSize = 20f
             textPaint.color = 0xFF00FFAA.toInt()
             textPaint.textAlign = Paint.Align.LEFT
-            val mutStr = p.mutations.takeLast(5).joinToString(" | ") {
-                it.name.take(6)
+            val mutStr = "MUTATIONS: " + p.mutations.takeLast(6).joinToString(", ") {
+                it.name.replace("_", " ").take(8)
             }
             canvas.drawText(mutStr, margin, mutY, textPaint)
         }
 
-        // Aura icons (bottom-right)
-        if (p.auras.isNotEmpty()) {
-            val auraY = snap.screenHeight - 80f
-            textPaint.textSize = 18f
-            textPaint.textAlign = Paint.Align.RIGHT
-            val auraStr = p.auras.joinToString(" ") { "◈${it.type.name.take(4)}" }
-            textPaint.color = 0xFF8800FF.toInt()
-            canvas.drawText(auraStr, w - margin, auraY, textPaint)
+        // Buffs and Auras (bottom-right)
+        val hudRightY = snap.screenHeight - margin
+        textPaint.textSize = 20f
+        textPaint.textAlign = Paint.Align.RIGHT
+        
+        val now = System.currentTimeMillis()
+        val buffStr = p.activeBuffs.joinToString(" ") { buff ->
+            val timeLeft = (buff.expiryTimeMs - now) / 1000
+            "[${buff.name} ${timeLeft}s]"
         }
+        
+        val auraStr = p.auras.joinToString(" ") { "◈${it.type.name.replace("_", " ").take(10)} Lv${it.level}" }
+        
+        textPaint.color = 0xFF00FFFF.toInt()
+        canvas.drawText(buffStr, w - margin, hudRightY - 35f, textPaint)
+        
+        textPaint.color = 0xFF8800FF.toInt()
+        canvas.drawText(auraStr, w - margin, hudRightY, textPaint)
     }
 
     private fun drawBar(

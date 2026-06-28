@@ -20,10 +20,11 @@ class Enemy(
     val type: EnemyType,
     val isBoss: Boolean = false,
     val wave: Int = 1,
-    startPos: Vector2 = Vector2()
+    startPos: Vector2 = Vector2(),
+    val isMainBoss: Boolean = false
 ) {
     var position: Vector2 = startPos.copy()
-    val radius: Float = if (isBoss) GameConstants.ENEMY_RADIUS * 2.4f else GameConstants.ENEMY_RADIUS
+    var radius: Float = if (isBoss) GameConstants.ENEMY_RADIUS * 2.4f else GameConstants.ENEMY_RADIUS
 
     // Stats scaled by wave
     val waveScale get() = 1f + (wave - 1) * (GameConstants.ENEMY_HP_SCALE - 1f)
@@ -34,7 +35,18 @@ class Enemy(
     val xpValue: Int = calculateXp()
     val lootChance: Float = if (isBoss) 1f else calculateLootChance()
 
+    // Vulnerability: Main bosses become significantly easier to damage in Phase 2 as waves progress
+    val vulnerability: Float get() {
+        var baseV = if (isMainBoss) 1f + (wave * 0.03f) else 1f
+        if (isBoss && phase >= 2) {
+            // "Bigger opponent" phase is even more vulnerable
+            baseV *= (1.5f + (wave * 0.02f))
+        }
+        return baseV
+    }
+
     var isAlive: Boolean = true
+    var rewardsProcessed: Boolean = false
     var velocity: Vector2 = Vector2()
     var aiState: EnemyAIState = EnemyAIState.SPAWNING
     var spawnProgress: Float = 0f // 0..1 spawn animation
@@ -71,15 +83,47 @@ class Enemy(
             EnemyType.NEBULA_WRAITH     -> 50f
             EnemyType.STAR_DEVOURER     -> 80f
             EnemyType.RIFT_STALKER      -> 60f
-            EnemyType.VOID_TITAN        -> 200f
-            EnemyType.COSMIC_GOD        -> 800f
-            EnemyType.ENTROPY_HERALD    -> 500f
-            EnemyType.SINGULARITY_SPAWN -> 120f
-            EnemyType.ABYSS_KNIGHT      -> 150f
-            EnemyType.PHASE_PHANTOM     -> 45f
-            EnemyType.ELDRITCH_HORROR   -> 1200f
+            EnemyType.VOID_TITAN        -> 250f
+            EnemyType.COSMIC_GOD        -> 900f
+            EnemyType.ENTROPY_HERALD    -> 600f
+            EnemyType.SINGULARITY_SPAWN -> 150f
+            EnemyType.ABYSS_KNIGHT      -> 180f
+            EnemyType.PHASE_PHANTOM     -> 55f
+            EnemyType.ELDRITCH_HORROR   -> 1500f
+            // New Enemies
+            EnemyType.GRAVITY_WELLER    -> 100f
+            EnemyType.SHADOW_STALKER    -> 70f
+            EnemyType.PLASMA_REAPAR     -> 120f
+            EnemyType.NEURAL_HIVE       -> 200f
+            EnemyType.DIMENSION_RIPPER  -> 110f
+            EnemyType.QUARK_GLUTTON     -> 300f
+            EnemyType.PHOTON_WRAITH     -> 65f
+            EnemyType.CHRONO_EATER      -> 140f
+            EnemyType.PULSE_WITCH       -> 90f
+            EnemyType.ANTIMATTER_CORE    -> 400f
+            EnemyType.NEUTRON_BEAST     -> 350f
+            EnemyType.SOLAR_FLARE       -> 130f
+            EnemyType.VOID_EEL          -> 80f
+            EnemyType.COMET_CRASH       -> 160f
+            EnemyType.ASTEROID_GOLEM    -> 500f
+            EnemyType.GALAXY_EATER      -> 450f
+            EnemyType.NEBULA_DRAGON     -> 550f
+            EnemyType.DARK_ENERGY_WISP  -> 40f
+            EnemyType.QUANTUM_GOLEM     -> 600f
+            EnemyType.SINGULARITY_SEED   -> 30f
+            // New Bosses
+            EnemyType.PRIME_SINGULARITY -> 2500f
+            EnemyType.NEBULA_QUEEN      -> 2000f
+            EnemyType.VOID_ARCHON       -> 2200f
+            EnemyType.STAR_EATER_TITAN  -> 3500f
+            EnemyType.CHRONOS_LORD      -> 1800f
+            EnemyType.DIMENSIONAL_GOD   -> 4000f
+            EnemyType.OMEGA_PHANTOM     -> 1500f
+            EnemyType.GALAXY_TITAN      -> 5000f
+            EnemyType.COSMIC_SERPENT    -> 3000f
+            EnemyType.ENTROPY_KING      -> 6000f
         }
-        val bossMultiplier = if (isBoss) 4.5f else 1f
+        val bossMultiplier = if (isBoss) 6.0f else 1f
         return base * waveScale * bossMultiplier
     }
 
@@ -90,16 +134,26 @@ class Enemy(
             EnemyType.NEBULA_WRAITH     -> 12f
             EnemyType.STAR_DEVOURER     -> 18f
             EnemyType.RIFT_STALKER      -> 15f
-            EnemyType.VOID_TITAN        -> 25f
-            EnemyType.COSMIC_GOD        -> 40f
-            EnemyType.ENTROPY_HERALD    -> 30f
-            EnemyType.SINGULARITY_SPAWN -> 20f
-            EnemyType.ABYSS_KNIGHT      -> 22f
-            EnemyType.PHASE_PHANTOM     -> 14f
-            EnemyType.ELDRITCH_HORROR   -> 50f
+            EnemyType.VOID_TITAN        -> 30f
+            EnemyType.COSMIC_GOD        -> 50f
+            EnemyType.ENTROPY_HERALD    -> 40f
+            EnemyType.SINGULARITY_SPAWN -> 25f
+            EnemyType.ABYSS_KNIGHT      -> 28f
+            EnemyType.PHASE_PHANTOM     -> 18f
+            EnemyType.ELDRITCH_HORROR   -> 65f
+            // New Enemies (averages)
+            EnemyType.ANTIMATTER_CORE, EnemyType.NEUTRON_BEAST -> 35f
+            EnemyType.PLASMA_REAPAR, EnemyType.NEURAL_HIVE -> 25f
+            EnemyType.GRAVITY_WELLER, EnemyType.QUARK_GLUTTON -> 20f
+            // New Bosses
+            EnemyType.PRIME_SINGULARITY, EnemyType.STAR_EATER_TITAN -> 80f
+            EnemyType.ENTROPY_KING, EnemyType.GALAXY_TITAN -> 100f
+            EnemyType.VOID_ARCHON, EnemyType.DIMENSIONAL_GOD -> 90f
+            else -> 15f
         }
-        val damagWaveScale = 1f + (wave - 1) * (GameConstants.ENEMY_DAMAGE_SCALE - 1f)
-        return base * damagWaveScale * (if (isBoss) 2f else 1f)
+        val bossDmgScale = if (isBoss) 1.25f else 1.0f
+        val damageWaveScale = 1f + (wave - 1) * (GameConstants.ENEMY_DAMAGE_SCALE - 1f) * bossDmgScale
+        return base * damageWaveScale * (if (isBoss) 3f else 1f)
     }
 
     private fun calculateSpeed(): Float {
@@ -116,14 +170,21 @@ class Enemy(
             EnemyType.ABYSS_KNIGHT      -> 85f
             EnemyType.PHASE_PHANTOM     -> 145f
             EnemyType.ELDRITCH_HORROR   -> 60f
+            // New ones
+            EnemyType.SHADOW_STALKER    -> 180f
+            EnemyType.PLASMA_REAPAR     -> 120f
+            EnemyType.PHOTON_WRAITH     -> 200f
+            EnemyType.CHRONO_EATER      -> 40f
+            EnemyType.GALAXY_TITAN      -> 30f
+            else -> 100f
         }
         return base * (if (isBoss) 0.8f else 1f)
     }
 
     private fun calculateAttackCooldown(): Long = when (type) {
-        EnemyType.RIFT_STALKER, EnemyType.PHASE_PHANTOM -> 800L
-        EnemyType.STAR_DEVOURER, EnemyType.VOID_TITAN   -> 2000L
-        EnemyType.COSMIC_GOD, EnemyType.ELDRITCH_HORROR -> 1500L
+        EnemyType.RIFT_STALKER, EnemyType.PHASE_PHANTOM, EnemyType.SHADOW_STALKER -> 800L
+        EnemyType.STAR_DEVOURER, EnemyType.VOID_TITAN, EnemyType.ASTEROID_GOLEM   -> 2000L
+        EnemyType.COSMIC_GOD, EnemyType.ELDRITCH_HORROR, EnemyType.ENTROPY_KING   -> 1500L
         else -> 1200L
     }
 
@@ -141,6 +202,11 @@ class Enemy(
             EnemyType.ABYSS_KNIGHT      -> 40
             EnemyType.PHASE_PHANTOM     -> 10
             EnemyType.ELDRITCH_HORROR   -> 400
+            // New ones
+            EnemyType.ENTROPY_KING      -> 1000
+            EnemyType.GALAXY_TITAN      -> 800
+            EnemyType.PRIME_SINGULARITY -> 600
+            else -> 25
         }
         return (base * (1f + wave * 0.1f)).toInt() * (if (isBoss) 5 else 1)
     }
@@ -158,6 +224,7 @@ class Enemy(
         EnemyType.ABYSS_KNIGHT      -> 0.30f
         EnemyType.PHASE_PHANTOM     -> 0.10f
         EnemyType.ELDRITCH_HORROR   -> 1.00f
+        else -> if (isBoss) 0.8f else 0.1f
     }
 
     private fun initBossAbilities() {
@@ -171,7 +238,7 @@ class Enemy(
 
     fun takeDamage(amount: Float): Boolean {
         if (!isAlive) return false
-        currentHp -= amount
+        currentHp -= amount * vulnerability
         if (currentHp <= 0f) {
             currentHp = 0f
             isAlive = false
@@ -188,14 +255,26 @@ class Enemy(
         if (isBoss && currentHp / maxHp <= 0.5f && phase == 1) {
             phase = 2
             speed *= 1.2f
+            radius *= 1.4f // Physically becomes a "bigger opponent"
+            isEnraged = true
+            aiState = EnemyAIState.ENRAGED
         }
         return false
     }
 
     fun hpPercent() = currentHp / maxHp
 
-    fun updateAI(playerPos: Vector2, currentTimeMs: Long, dt: Float) {
-        targetPosition.set(playerPos)
+    fun updateAI(playerPos: Vector2, currentTimeMs: Long, dt: Float, isConfused: Boolean = false) {
+        if (isConfused) {
+            // Move towards a point that circles the player instead of directly at them
+            val angle = (currentTimeMs * 0.001f) + (position.x * 0.01f)
+            targetPosition.set(
+                playerPos.x + cos(angle) * 400f,
+                playerPos.y + sin(angle) * 400f
+            )
+        } else {
+            targetPosition.set(playerPos)
+        }
         rotationAngle += dt * 120f * (if (isEnraged) 2f else 1f)
 
         when (aiState) {

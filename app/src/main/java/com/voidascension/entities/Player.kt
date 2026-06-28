@@ -26,6 +26,13 @@ data class ActiveAura(
     var lastTickMs: Long = 0L
 )
 
+interface TimedBuff {
+    val name: String
+    val expiryTimeMs: Long
+    fun onApply(player: Player) {}
+    fun onExpire(player: Player) {}
+}
+
 class Player(
     var position: Vector2 = Vector2(),
     val radius: Float = GameConstants.PLAYER_RADIUS
@@ -55,6 +62,30 @@ class Player(
     var lifeSteal: Float = 0f
     var projectileCount: Int = 1
     var projectilePierce: Int = 0
+    var regenRate: Float = 0f // HP per second
+
+    // Epic Upgrade Flags
+    var isOneShotKill: Boolean = false
+    var isLootMagnet: Boolean = false
+    var extraLives: Int = 0
+    var isEnemiesConfused: Boolean = false
+    var isHomingShots: Boolean = false
+    var hasUltimateAura: Boolean = false
+    var hasTwins: Boolean = false
+    var hasShockwave: Boolean = false
+    var hasMauragSupremacy: Boolean = false
+
+    var twin1Pos: Vector2 = Vector2()
+    var twin2Pos: Vector2 = Vector2()
+    
+    // Cheat Flags
+    var isAikiActive: Boolean = false
+    var isMochiMochiActive: Boolean = false
+    var isMotomemashitaActive: Boolean = false
+
+    // Timed Buffs
+    private val timedBuffs = mutableListOf<TimedBuff>()
+    val activeBuffs: List<TimedBuff> get() = synchronized(timedBuffs) { ArrayList(timedBuffs) }
 
     // State
     var velocity: Vector2 = Vector2()
@@ -68,14 +99,40 @@ class Player(
 
     // Equipment
     var weaponType: WeaponType = WeaponType.PLASMA_RIFLE
-    val mutations: MutableList<MutationType> = mutableListOf()
-    val cyberImplants: MutableList<CyberImplant> = mutableListOf()
-    val auras: MutableList<ActiveAura> = mutableListOf()
+    val mutations = java.util.Collections.synchronizedList(mutableListOf<MutationType>())
+    val cyberImplants = java.util.Collections.synchronizedList(mutableListOf<CyberImplant>())
+    val auras = java.util.Collections.synchronizedList(mutableListOf<ActiveAura>())
 
     // Computed stats
     val effectiveDamage get() = baseDamage * damageMultiplier
     val effectiveSpeed get() = baseSpeed * speedMultiplier
     val effectiveFireRate get() = baseFireRate * fireRateMultiplier
+
+    fun update(dt: Float, currentTimeMs: Long) {
+        // Handle timed buffs
+        synchronized(timedBuffs) {
+            val iterator = timedBuffs.iterator()
+            while (iterator.hasNext()) {
+                val buff = iterator.next()
+                if (currentTimeMs >= buff.expiryTimeMs) {
+                    buff.onExpire(this)
+                    iterator.remove()
+                }
+            }
+        }
+
+        // Apply regeneration
+        if (regenRate > 0 && currentHp < maxHp) {
+            heal(regenRate * dt)
+        }
+    }
+
+    fun addTimedBuff(buff: TimedBuff) {
+        synchronized(timedBuffs) {
+            buff.onApply(this)
+            timedBuffs.add(buff)
+        }
+    }
 
     fun applyPermanentUpgrades(upgrades: List<com.voidascension.data.PermanentUpgrade>) {
         for (upg in upgrades) {
@@ -93,6 +150,24 @@ class Player(
                 "crit_start" -> critChance += upg.level * 0.05f
                 "fire_rate"  -> baseFireRate *= (1f + upg.level * 0.1f)
                 "extra_proj" -> projectileCount += upg.level // Lv1 gives +1, Lv2 gives another +1
+                
+                // Epics
+                "epic_kokey" -> if (upg.level > 0) isOneShotKill = true
+                "epic_kekay" -> if (upg.level > 0) isLootMagnet = true
+                "epic_umamay" -> if (upg.level > 0) extraLives += 1
+                "epic_kokoy" -> if (upg.level > 0) isEnemiesConfused = true
+                "epic_sukhoi" -> if (upg.level > 0) isHomingShots = true
+                "epic_king_cone" -> if (upg.level > 0) {
+                    hasUltimateAura = true
+                    auraMultiplier *= 2.0f
+                }
+                "epic_bebot" -> if (upg.level > 0) hasTwins = true
+                "epic_korokoy" -> if (upg.level > 0) hasShockwave = true
+                "epic_maurag" -> if (upg.level > 0) {
+                    hasMauragSupremacy = true
+                    // Apply all mutations
+                    MutationType.entries.forEach { applyMutation(it) }
+                }
             }
         }
     }
@@ -163,8 +238,10 @@ class Player(
     }
 
     fun addAura(type: AuraType) {
-        val existing = auras.find { it.type == type }
-        if (existing != null) existing.level++ else auras.add(ActiveAura(type))
+        synchronized(auras) {
+            val existing = auras.find { it.type == type }
+            if (existing != null) existing.level++ else auras.add(ActiveAura(type))
+        }
     }
 
     fun checkInvincibility(currentTimeMs: Long) {

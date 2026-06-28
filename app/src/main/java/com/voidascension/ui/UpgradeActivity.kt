@@ -98,14 +98,31 @@ class UpgradeAdapter(
     override fun onBindViewHolder(holder: VH, position: Int) {
         val upg = upgrades[position]
         holder.binding.apply {
-            tvUpgradeName.text = "${upg.name} (LV. ${upg.level})"
+            tvUpgradeName.text = if (upg.isEpic) upg.name else "${upg.name} (LV. ${upg.level})"
             tvUpgradeDesc.text = upg.description
             
             val isMaxed = upg.level >= upg.maxLevel
             tvUpgradeCost.text = if (isMaxed) "MAX LEVEL" else "${upg.cost} SHARDS"
             
+            // Epically strongest ones styling
+            if (upg.isEpic) {
+                root.setCardBackgroundColor(android.graphics.Color.parseColor("#1A001A"))
+                tvUpgradeName.setTextColor(android.graphics.Color.parseColor("#FF00FF")) // Magenta
+                tvUpgradeCost.setTextColor(android.graphics.Color.parseColor("#FFAA00")) // Gold-ish
+                btnBuy.strokeColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#FF00FF"))
+                btnBuy.setTextColor(android.graphics.Color.parseColor("#FF00FF"))
+                btnBuy.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#330033"))
+            } else {
+                root.setCardBackgroundColor(android.graphics.Color.parseColor("#0A0F1E"))
+                tvUpgradeName.setTextColor(android.graphics.Color.parseColor("#39FF14")) // alien_green
+                tvUpgradeCost.setTextColor(android.graphics.Color.parseColor("#CCFF00")) // alien_acid
+                btnBuy.strokeColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#39FF14"))
+                btnBuy.setTextColor(android.graphics.Color.parseColor("#39FF14"))
+                btnBuy.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#002211"))
+            }
+
             // Always keep enabled but visual feedback for affordance
-            btnBuy.text = if (isMaxed) "MAXED" else "UPGRADE"
+            btnBuy.text = if (isMaxed) "MAXED" else if (upg.isEpic) "EVOLVE" else "UPGRADE"
             
             // Set alpha to show if it's maxed
             root.alpha = if (isMaxed) 0.6f else 1f

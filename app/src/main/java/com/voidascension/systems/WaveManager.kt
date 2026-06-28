@@ -18,6 +18,7 @@ data class EnemySpawnConfig(
     val type: EnemyType,
     val count: Int,
     val isBoss: Boolean = false,
+    val isMainBoss: Boolean = false,
     val spawnDelayMs: Long = 0L,
     val interval: Long = 500L
 )
@@ -74,14 +75,18 @@ class WaveManager(
                 enemies.add(EnemySpawnConfig(EnemyType.PHASE_PHANTOM, (baseCount * 0.15f).toInt(), spawnDelayMs = 4000L))
             }
             else -> {
-                // Wave 21+: Mix of all elite types
-                val allTypes = listOf(
-                    EnemyType.RIFT_STALKER, EnemyType.ABYSS_KNIGHT,
-                    EnemyType.SINGULARITY_SPAWN, EnemyType.VOID_TITAN,
-                    EnemyType.PHASE_PHANTOM, EnemyType.ENTROPY_HERALD
-                )
-                val perType = max(1, baseCount / allTypes.size)
-                allTypes.forEachIndexed { i, type ->
+                // Wave 21+: Mix of all types including new ones
+                val allTypes = EnemyType.entries.filter { 
+                    it != EnemyType.VOID_TITAN && it != EnemyType.COSMIC_GOD &&
+                    it != EnemyType.ENTROPY_HERALD && it != EnemyType.ELDRITCH_HORROR &&
+                    !it.name.contains("PRIME") && !it.name.contains("TITAN") &&
+                    !it.name.contains("KING") && !it.name.contains("QUEEN") &&
+                    !it.name.contains("GOD") && !it.name.contains("ARCHON") &&
+                    !it.name.contains("SERPENT") && !it.name.contains("LORD")
+                }
+                val selection = allTypes.shuffled().take(6)
+                val perType = max(1, baseCount / selection.size)
+                selection.forEachIndexed { i, type ->
                     enemies.add(EnemySpawnConfig(type, perType, spawnDelayMs = i * 2500L))
                 }
             }
@@ -103,40 +108,36 @@ class WaveManager(
     }
 
     private fun buildBossWave(wave: Int): WaveConfig {
-        val bossType = when (wave / GameConstants.BOSS_WAVE_INTERVAL) {
-            1    -> EnemyType.VOID_TITAN
-            2    -> EnemyType.ENTROPY_HERALD
-            3    -> EnemyType.COSMIC_GOD
-            4    -> EnemyType.SINGULARITY_SPAWN
-            else -> EnemyType.ELDRITCH_HORROR
-        }
+        val bosses = listOf(
+            EnemyType.VOID_TITAN, EnemyType.ENTROPY_HERALD, EnemyType.COSMIC_GOD,
+            EnemyType.SINGULARITY_SPAWN, EnemyType.ELDRITCH_HORROR,
+            EnemyType.PRIME_SINGULARITY, EnemyType.NEBULA_QUEEN, EnemyType.VOID_ARCHON,
+            EnemyType.STAR_EATER_TITAN, EnemyType.CHRONOS_LORD, EnemyType.DIMENSIONAL_GOD,
+            EnemyType.OMEGA_PHANTOM, EnemyType.GALAXY_TITAN, EnemyType.COSMIC_SERPENT,
+            EnemyType.ENTROPY_KING
+        )
+        val bossType = bosses.random()
 
         val addons = when {
             wave > 10 -> listOf(
-                EnemySpawnConfig(EnemyType.VOID_CRAWLER, 6, spawnDelayMs = 5000L),
-                EnemySpawnConfig(EnemyType.COSMIC_SHADE, 4, spawnDelayMs = 10000L)
+                EnemySpawnConfig(EnemyType.VOID_CRAWLER, 8, spawnDelayMs = 5000L),
+                EnemySpawnConfig(EnemyType.COSMIC_SHADE, 6, spawnDelayMs = 10000L)
             )
             wave > 20 -> listOf(
-                EnemySpawnConfig(EnemyType.NEBULA_WRAITH, 6, spawnDelayMs = 5000L),
-                EnemySpawnConfig(EnemyType.RIFT_STALKER, 4, spawnDelayMs = 10000L),
-                EnemySpawnConfig(EnemyType.ABYSS_KNIGHT, 3, spawnDelayMs = 15000L)
+                EnemySpawnConfig(EnemyType.NEBULA_WRAITH, 8, spawnDelayMs = 5000L),
+                EnemySpawnConfig(EnemyType.RIFT_STALKER, 6, spawnDelayMs = 10000L),
+                EnemySpawnConfig(EnemyType.ABYSS_KNIGHT, 4, spawnDelayMs = 15000L),
+                EnemySpawnConfig(EnemyType.GRAVITY_WELLER, 4, spawnDelayMs = 20000L)
             )
             else -> emptyList()
         }
 
-        val bossName = when (bossType) {
-            EnemyType.VOID_TITAN        -> "THE VOID TITAN"
-            EnemyType.ENTROPY_HERALD    -> "HERALD OF ENTROPY"
-            EnemyType.COSMIC_GOD        -> "THE COSMIC GOD"
-            EnemyType.SINGULARITY_SPAWN -> "SINGULARITY PRIME"
-            EnemyType.ELDRITCH_HORROR   -> "ELDRITCH HORROR"
-            else                        -> "BOSS ENTITY"
-        }
+        val bossName = bossType.name.replace("_", " ")
 
         return WaveConfig(
             waveNumber = wave,
             isBossWave = true,
-            enemies = listOf(EnemySpawnConfig(bossType, 1, isBoss = true)) + addons,
+            enemies = listOf(EnemySpawnConfig(bossType, 1, isBoss = true, isMainBoss = true)) + addons,
             durationMs = 120_000L,
             title = bossName
         )
@@ -146,28 +147,38 @@ class WaveManager(
         currentWave = wave
         waveStartTimeMs = currentTimeMs
         isWaveActive = true
-        spawnQueue.clear()
-        val config = buildWave(wave)
-        config.enemies.forEach { spawnConfig ->
-            repeat(spawnConfig.count) { i ->
-                spawnQueue.add(Pair(spawnConfig, i))
+        synchronized(spawnQueue) {
+            spawnQueue.clear()
+            val config = buildWave(wave)
+            config.enemies.forEach { spawnConfig ->
+                repeat(spawnConfig.count) { i ->
+                    spawnQueue.add(Pair(spawnConfig, i))
+                }
             }
+            enemiesRemainingToSpawn = spawnQueue.size
         }
-        enemiesRemainingToSpawn = spawnQueue.size
         lastSpawnMs = currentTimeMs
     }
 
     fun getEnemiesToSpawn(currentTimeMs: Long): List<Enemy> {
         val toSpawn = mutableListOf<Enemy>()
-        while (spawnQueue.isNotEmpty()) {
-            val (config, index) = spawnQueue.first()
-            val delay = config.spawnDelayMs + index.toLong() * config.interval
-            if (currentTimeMs - waveStartTimeMs >= delay) {
-                spawnQueue.removeFirst()
-                val spawnPos = getSpawnPosition()
-                toSpawn.add(Enemy(config.type, config.isBoss, currentWave, spawnPos))
-                enemiesRemainingToSpawn = spawnQueue.size
-            } else break
+        synchronized(spawnQueue) {
+            while (spawnQueue.isNotEmpty()) {
+                val (config, index) = spawnQueue.first()
+                val delay = config.spawnDelayMs + index.toLong() * config.interval
+                if (currentTimeMs - waveStartTimeMs >= delay) {
+                    spawnQueue.removeFirst()
+                    val spawnPos = getSpawnPosition()
+                    toSpawn.add(Enemy(
+                        type = config.type,
+                        isBoss = config.isBoss,
+                        wave = currentWave,
+                        startPos = spawnPos,
+                        isMainBoss = config.isMainBoss
+                    ))
+                    enemiesRemainingToSpawn = spawnQueue.size
+                } else break
+            }
         }
         return toSpawn
     }
@@ -184,7 +195,7 @@ class WaveManager(
     }
 
     fun isWaveComplete(activeEnemies: Int) =
-        spawnQueue.isEmpty() && activeEnemies == 0
+        synchronized(spawnQueue) { spawnQueue.isEmpty() } && activeEnemies == 0
 
     fun getWaveProgress(currentTimeMs: Long): Float {
         val elapsed = currentTimeMs - waveStartTimeMs
