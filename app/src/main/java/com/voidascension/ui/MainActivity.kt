@@ -112,17 +112,38 @@ class MainActivity : AppCompatActivity() {
         val wave   = intent.getIntExtra("WAVE", 1)
         val kills  = intent.getIntExtra("KILLS", 0)
         val shards = intent.getIntExtra("SHARDS", 0)
-        
-        binding.gameOverPanel.visibility = View.VISIBLE
-        binding.tvGameOverScore.text = "SCORE: $score"
-        binding.tvGameOverWave.text  = "REACHED WAVE $wave"
-        binding.tvGameOverKills.text = "KILLS: $kills"
-        
+
         saveManager.saveHighScore(score, wave, kills)
         if (shards > 0) {
             saveManager.addVoidShards(shards)
-            Toast.makeText(this, "Collected $shards Void Shards!", Toast.LENGTH_LONG).show()
         }
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_game_over, null)
+        val tvScore = dialogView.findViewById<android.widget.TextView>(R.id.tvScore)
+        val tvWave = dialogView.findViewById<android.widget.TextView>(R.id.tvWave)
+        val tvKills = dialogView.findViewById<android.widget.TextView>(R.id.tvKills)
+        val tvShards = dialogView.findViewById<android.widget.TextView>(R.id.tvShards)
+        val btnOk = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnOk)
+
+        tvScore.text = "BIOMASS: $score"
+        tvWave.text = "INFESTATION LVL: $wave"
+        tvKills.text = "ELIMINATIONS: $kills"
+        tvShards.text = "VOID SHARDS EARNED: +$shards"
+        tvShards.visibility = if (shards > 0) View.VISIBLE else View.GONE
+
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(dialogView)
+        dialog.window?.let { window ->
+            window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            window.setLayout(
+                (resources.displayMetrics.density * 320).toInt(),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            window.setGravity(android.view.Gravity.CENTER)
+        }
+
+        btnOk.setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
     private fun loadBestScore() {

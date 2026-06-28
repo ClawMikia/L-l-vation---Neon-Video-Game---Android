@@ -37,36 +37,46 @@ class VirtualJoystick @JvmOverloads constructor(
         val cx = width / 2f
         val cy = height / 2f
 
-        // Background circle
-        bgPaint.color = 0x22004488.toInt()
+        // Background circle (Dark Alien Void)
+        bgPaint.color = 0x4402050A.toInt()
         canvas.drawCircle(cx, cy, outerRadius, bgPaint)
 
-        // Outer ring
-        outerPaint.color = if (active) 0xAA00FFFF.toInt() else 0x6600AACC.toInt()
+        // Outer energy ring
+        outerPaint.color = if (active) 0xAA39FF14.toInt() else 0x4439FF14.toInt()
+        outerPaint.strokeWidth = 4f
         canvas.drawCircle(cx, cy, outerRadius, outerPaint)
+        
+        // Secondary thin ring
+        outerPaint.color = 0x2200D7FF.toInt()
+        outerPaint.strokeWidth = 2f
+        canvas.drawCircle(cx, cy, outerRadius * 0.85f, outerPaint)
 
-        // Cross lines
+        // Cross lines (Tech grid)
         outerPaint.strokeWidth = 1f
-        outerPaint.color = 0x3300FFFF.toInt()
+        outerPaint.color = 0x3300D7FF.toInt()
         canvas.drawLine(cx - outerRadius, cy, cx + outerRadius, cy, outerPaint)
         canvas.drawLine(cx, cy - outerRadius, cx, cy + outerRadius, outerPaint)
-        outerPaint.strokeWidth = 3f
+        
+        // Diagonal cross lines
+        val diag = outerRadius * 0.707f
+        canvas.drawLine(cx - diag, cy - diag, cx + diag, cy + diag, outerPaint)
+        canvas.drawLine(cx + diag, cy - diag, cx - diag, cy + diag, outerPaint)
 
         // Knob
         val kx = if (active) cx + knobX else cx
         val ky = if (active) cy + knobY else cy
 
-        // Knob glow
-        innerPaint.color = 0x4400FFFF.toInt()
-        canvas.drawCircle(kx, ky, innerRadius * 1.6f, innerPaint)
+        // Knob glow (Alien Pulsing)
+        innerPaint.color = if (active) 0x66B026FF.toInt() else 0x22B026FF.toInt()
+        canvas.drawCircle(kx, ky, innerRadius * 1.8f, innerPaint)
 
         // Knob body
-        innerPaint.color = if (active) 0xCC00FFFF.toInt() else 0x8800AACC.toInt()
+        innerPaint.color = if (active) 0xFF00D7FF.toInt() else 0x8800D7FF.toInt()
         canvas.drawCircle(kx, ky, innerRadius, innerPaint)
 
-        // Knob highlight
-        innerPaint.color = 0x88FFFFFF.toInt()
-        canvas.drawCircle(kx - innerRadius * 0.2f, ky - innerRadius * 0.2f, innerRadius * 0.3f, innerPaint)
+        // Knob highlight (Energy core)
+        innerPaint.color = 0xBBFFFFFF.toInt()
+        canvas.drawCircle(kx - innerRadius * 0.15f, ky - innerRadius * 0.15f, innerRadius * 0.25f, innerPaint)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

@@ -71,58 +71,6 @@
             android:layout_marginTop="8dp"/>
     </LinearLayout>
 
-    <!-- Game Over Panel -->
-    <LinearLayout
-        android:id="@+id/gameOverPanel"
-        android:layout_width="320dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/bg_cyberpunk_card"
-        android:padding="20dp"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/titleBlock"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="20dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="— BIOLOGICAL FAILURE —"
-            android:textColor="#FF4444"
-            android:textSize="18sp"
-            android:fontFamily="monospace"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/tvGameOverScore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="BIOMASS: 0"
-            android:textColor="@color/alien_acid"
-            android:textSize="22sp"
-            android:fontFamily="monospace"/>
-
-        <TextView
-            android:id="@+id/tvGameOverWave"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="INFESTATION LVL 0"
-            android:textColor="@color/alien_cyan"
-            android:textSize="18sp"
-            android:fontFamily="monospace"/>
-
-        <TextView
-            android:id="@+id/tvGameOverKills"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="ELIMINATIONS: 0"
-            android:textColor="#AAAAAA"
-            android:textSize="16sp"
-            android:fontFamily="monospace"/>
-    </LinearLayout>
-
     <!-- Menu Card -->
     <LinearLayout
         android:id="@+id/cardMenu"

@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Alien Shape Styles -->
+    <style name="ShapeAppearance.Alien" parent="">
+        <item name="cornerFamily">cut</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.Alien.Small" parent="">
+        <item name="cornerFamily">cut</item>
+        <item name="cornerSize">6dp</item>
+    </style>
+
     <style name="Theme.VoidAscension" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/void_cyan</item>
-        <item name="colorPrimaryDark">@color/void_card</item>
-        <item name="colorAccent">@color/void_magenta</item>
-        <item name="android:windowBackground">@color/void_bg</item>
-        <item name="android:statusBarColor">@color/void_card</item>
-        <item name="android:navigationBarColor">@color/void_bg</item>
+        <item name="colorPrimary">@color/alien_cyan</item>
+        <item name="colorPrimaryDark">@color/alien_bg</item>
+        <item name="colorAccent">@color/alien_purple</item>
+        <item name="android:windowBackground">@color/alien_bg</item>
+        <item name="android:statusBarColor">@color/alien_bg</item>
+        <item name="android:navigationBarColor">@color/alien_bg</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
@@ -18,9 +29,10 @@
     </style>
 
     <style name="VoidText.Title">
-        <item name="android:textColor">@color/void_cyan</item>
+        <item name="android:textColor">@color/alien_cyan</item>
         <item name="android:textSize">28sp</item>
         <item name="android:letterSpacing">0.2</item>
+        <item name="android:textAllCaps">true</item>
     </style>
 
     <style name="VoidText.Body">
@@ -38,19 +50,30 @@
         <item name="android:fontFamily">monospace</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
-        <item name="backgroundTint">@color/void_card</item>
+        <item name="backgroundTint">@color/alien_card</item>
         <item name="strokeWidth">2dp</item>
-        <item name="cornerRadius">8dp</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Alien.Small</item>
     </style>
 
     <style name="VoidButton.Primary">
-        <item name="android:textColor">@color/void_cyan</item>
-        <item name="strokeColor">@color/void_cyan</item>
+        <item name="android:textColor">@color/alien_cyan</item>
+        <item name="strokeColor">@color/alien_cyan</item>
+    </style>
+
+    <style name="VoidButton.Secondary">
+        <item name="android:textColor">@color/alien_green</item>
+        <item name="strokeColor">@color/alien_green</item>
     </style>
 
     <style name="VoidButton.Danger">
         <item name="android:textColor">@color/void_red</item>
         <item name="strokeColor">@color/void_red</item>
+    </style>
+
+    <style name="VoidCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/alien_card</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Alien</item>
     </style>
 
 </resources>

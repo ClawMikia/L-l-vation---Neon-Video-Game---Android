@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="320dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_cyberpunk_card"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/tvGameOverTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="— MISSION TERMINATED —"
+        android:textColor="#FF4444"
+        android:textSize="20sp"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:letterSpacing="0.1"
+        android:layout_marginBottom="24dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#15FF0000"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:id="@+id/tvScore"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="BIOMASS: 0"
+            android:textColor="@color/alien_green"
+            android:textSize="18sp"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvWave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="INFESTATION LVL: 0"
+            android:textColor="@color/alien_cyan"
+            android:textSize="16sp"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvKills"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ELIMINATIONS: 0"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="16dp"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#44FF4444"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:id="@+id/tvShards"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="VOID SHARDS EARNED: +0"
+            android:textColor="@color/alien_acid"
+            android:textSize="18sp"
+            android:fontFamily="monospace"
+            android:textStyle="bold"
+            android:gravity="center"/>
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnOk"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="ACKNOWLEDGE"
+        android:fontFamily="monospace"
+        android:textSize="16sp"
+        android:textColor="@color/alien_cyan"
+        app:backgroundTint="#0A0F1E"
+        app:strokeColor="@color/alien_cyan"
+        app:strokeWidth="2dp"
+        app:cornerRadius="4dp"/>
+
+</LinearLayout>

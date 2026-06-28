@@ -22,14 +22,15 @@ class GameRenderer @JvmOverloads constructor(
     private val avatarPaths = mutableMapOf<AvatarShape, Path>()
     private var backgroundBitmap: Bitmap? = null
 
-    // Cyberpunk color palette
-    private val COLOR_CYAN    = 0xFF00FFFF.toInt()
-    private val COLOR_MAGENTA = 0xFFFF00FF.toInt()
-    private val COLOR_PURPLE  = 0xFF8800FF.toInt()
-    private val COLOR_DARK_BG = 0xFF080B14.toInt()
-    private val COLOR_PLAYER  = 0xFF00FFFF.toInt()
-    private val COLOR_HP_BAR  = 0xFF00FF44.toInt()
-    private val COLOR_XP_BAR  = 0xFF00AAFF.toInt()
+    // Alien Cyberpunk color palette
+    private val COLOR_CYAN    = 0xFF00D7FF.toInt()
+    private val COLOR_GREEN   = 0xFF39FF14.toInt()
+    private val COLOR_PURPLE  = 0xFFB026FF.toInt()
+    private val COLOR_DARK_BG = 0xFF02050A.toInt()
+    private val COLOR_PLAYER  = 0xFF00D7FF.toInt()
+    private val COLOR_HP_BAR  = 0xFF39FF14.toInt()
+    private val COLOR_XP_BAR  = 0xFF00D7FF.toInt()
+    private val COLOR_DANGER  = 0xFFFF0044.toInt()
 
     private var snapshot: GameSnapshot? = null
     private var time = 0f
@@ -725,7 +726,7 @@ class GameRenderer @JvmOverloads constructor(
         currentX += textPaint.measureText(lvlStr) + 40f
 
         // WAVE
-        textPaint.color = 0xFFFF00FF.toInt()
+        textPaint.color = COLOR_PURPLE
         textPaint.textSize = 28f
         val waveStr = snap.waveTitle
         canvas.drawText(waveStr, currentX, infoY, textPaint)
@@ -748,7 +749,7 @@ class GameRenderer @JvmOverloads constructor(
         if (p.mutations.isNotEmpty()) {
             val mutY = snap.screenHeight - margin
             textPaint.textSize = 20f
-            textPaint.color = 0xFF00FFAA.toInt()
+            textPaint.color = COLOR_GREEN
             textPaint.textAlign = Paint.Align.LEFT
             val mutStr = "MUTATIONS: " + p.mutations.takeLast(6).joinToString(", ") {
                 it.name.replace("_", " ").take(8)
@@ -769,10 +770,10 @@ class GameRenderer @JvmOverloads constructor(
         
         val auraStr = p.auras.joinToString(" ") { "◈${it.type.name.replace("_", " ").take(10)} Lv${it.level}" }
         
-        textPaint.color = 0xFF00FFFF.toInt()
+        textPaint.color = COLOR_CYAN
         canvas.drawText(buffStr, w - margin, hudRightY - 35f, textPaint)
         
-        textPaint.color = 0xFF8800FF.toInt()
+        textPaint.color = COLOR_PURPLE
         canvas.drawText(auraStr, w - margin, hudRightY, textPaint)
     }
 
@@ -780,14 +781,32 @@ class GameRenderer @JvmOverloads constructor(
         canvas: Canvas, x: Float, y: Float, w: Float, h: Float,
         fill: Float, bgColor: Int, fgColor: Int
     ) {
+        val cut = h / 3f
+        
+        fun getBarPath(width: Float): Path {
+            val p = Path()
+            p.moveTo(x + cut, y)
+            p.lineTo(x + width, y)
+            p.lineTo(x + width, y + h - cut)
+            p.lineTo(x + width - cut, y + h)
+            p.lineTo(x, y + h)
+            p.lineTo(x, y + cut)
+            p.close()
+            return p
+        }
+
         paint.style = Paint.Style.FILL
-        paint.color = bgColor; paint.alpha = 200
-        canvas.drawRoundRect(x, y, x + w, y + h, h / 2, h / 2, paint)
-        paint.color = fgColor; paint.alpha = 255
-        canvas.drawRoundRect(x, y, x + w * fill.coerceIn(0f, 1f), y + h, h / 2, h / 2, paint)
-        paint.color = 0xFFFFFFFF.toInt(); paint.alpha = 40
-        paint.style = Paint.Style.STROKE; paint.strokeWidth = 1.5f
-        canvas.drawRoundRect(x, y, x + w, y + h, h / 2, h / 2, paint)
+        paint.color = bgColor; paint.alpha = 180
+        canvas.drawPath(getBarPath(w), paint)
+        
+        if (fill > 0) {
+            paint.color = fgColor; paint.alpha = 255
+            canvas.drawPath(getBarPath(w * fill.coerceIn(0f, 1f)), paint)
+        }
+        
+        paint.color = 0xFFFFFFFF.toInt(); paint.alpha = 60
+        paint.style = Paint.Style.STROKE; paint.strokeWidth = 2f
+        canvas.drawPath(getBarPath(w), paint)
         paint.alpha = 255; paint.style = Paint.Style.FILL
     }
 }
