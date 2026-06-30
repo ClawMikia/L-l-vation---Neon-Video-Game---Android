@@ -170,7 +170,7 @@ class LootSystem {
         // New: Regeneration Buff for 2 minutes
         allOptions.add(UpgradeOption(
             type = UpgradeType.BUFF,
-            name = "Nano-Regen Overdrive",
+            name = "Xeno-Pulse Rejuvenator",
             description = "Regenerate 5 HP/sec for 120 seconds",
             rarity = LootRarity.EPIC
         ))
@@ -194,10 +194,10 @@ class LootSystem {
         MutationType.CYBER_REFLEXES  -> "Cyber Reflexes"
         MutationType.PLASMA_VEINS    -> "Plasma Veins"
         MutationType.PHASE_SHIFT     -> "Phase Shift"
-        MutationType.ENTROPY_TOUCH   -> "Entropy Touch"
+        MutationType.ENTROPY_TOUCH   -> "Null-State Resonance"
         MutationType.COSMIC_SIGHT    -> "Cosmic Sight"
-        MutationType.TWIN_BARRELS    -> "Twin Barrels"
-        MutationType.EXPLOSIVE_ROUNDS-> "Explosive Rounds"
+        MutationType.TWIN_BARRELS    -> "Bifurcated Void-Reaper"
+        MutationType.EXPLOSIVE_ROUNDS-> "Volatile Matter Ejector"
         MutationType.LIFE_STEAL      -> "Life Steal"
     }
 

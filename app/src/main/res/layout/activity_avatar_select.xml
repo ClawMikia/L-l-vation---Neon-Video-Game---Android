@@ -4,15 +4,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#080B14">
+    android:background="@drawable/background">
 
-    <ImageView
-        android:id="@+id/ivBackground"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="matrix"
-        android:alpha="0.3"
-        android:contentDescription="background" />
+
 
     <TextView
         android:id="@+id/tvTitle"

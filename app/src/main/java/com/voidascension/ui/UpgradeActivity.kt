@@ -25,15 +25,25 @@ class UpgradeActivity : AppCompatActivity() {
     @Inject
     lateinit var saveManager: SaveManager
 
+    @Inject
+    lateinit var audioManager: com.voidascension.utils.AudioManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUpgradeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        UIUtils.setupRotatedBackground(binding.ivBackground)
 
-        binding.btnBack.setOnClickListener { finish() }
+        binding.btnBack.setOnClickListener {
+            audioManager.playMenuClick()
+            finish()
+        }
         setupRecyclerView()
         refreshData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        audioManager.startBgm("menu")
     }
 
     private fun setupRecyclerView() {
@@ -62,6 +72,7 @@ class UpgradeActivity : AppCompatActivity() {
         }
         
         if (currency >= upgrade.cost) {
+            audioManager.playMenuClick() // Or play a "buy" sound if added
             if (saveManager.spendVoidShards(upgrade.cost)) {
                 saveManager.purchaseUpgrade(upgrade.id)
                 refreshData()

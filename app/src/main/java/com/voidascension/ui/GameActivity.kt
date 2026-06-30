@@ -5,9 +5,12 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.lifecycle.lifecycleScope
 import com.voidascension.R
 import com.voidascension.data.SaveManager
@@ -25,6 +28,7 @@ class GameActivity : AppCompatActivity() {
 
     @Inject lateinit var saveManager: SaveManager
     @Inject lateinit var cheatManager: com.voidascension.data.CheatManager
+    @Inject lateinit var audioManager: com.voidascension.utils.AudioManager
     private lateinit var binding: ActivityGameBinding
     private var engine: GameEngine? = null
     private var lastSnapshotState = GameState.PLAYING
@@ -50,11 +54,29 @@ class GameActivity : AppCompatActivity() {
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        adjustLayoutForOrientation(resources.configuration.orientation)
+
         binding.gameRenderer.post { initGame() }
-        binding.btnPause.setOnClickListener { togglePause() }
-        binding.btnResume.setOnClickListener { resumeGame() }
-        binding.btnQuit.setOnClickListener { finish() }
-        binding.btnOrientation.setOnClickListener { toggleOrientation() }
+        binding.btnPause.setOnClickListener {
+            audioManager.playMenuClick()
+            togglePause()
+        }
+        binding.btnResume.setOnClickListener {
+            audioManager.playMenuClick()
+            resumeGame()
+        }
+        binding.btnSettings.setOnClickListener {
+            audioManager.playMenuClick()
+            showSettingsDialog()
+        }
+        binding.btnQuit.setOnClickListener {
+            audioManager.playMenuClick()
+            finish()
+        }
+        binding.btnOrientation.setOnClickListener {
+            audioManager.playMenuClick()
+            toggleOrientation()
+        }
     }
 
     private fun toggleOrientation() {
@@ -74,6 +96,7 @@ class GameActivity : AppCompatActivity() {
             screenWidth = w,
             screenHeight = h,
             avatarIndex = saveManager.getSelectedAvatar(),
+            audioManager = audioManager,
             onSnapshot = { snap -> handleSnapshot(snap) },
             onGameOver = { score, wave, kills -> handleGameOver(score, wave, kills) },
             onLevelUp = { runOnUiThread { showLevelUpToast() } }
@@ -139,9 +162,29 @@ class GameActivity : AppCompatActivity() {
         binding.upgradeContainer.removeAllViews()
 
         val inflater = LayoutInflater.from(this)
+        val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        
+        binding.upgradeContainer.orientation = if (isLandscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+        
         options.forEach { option ->
             val cardView = inflater.inflate(R.layout.item_upgrade_card, binding.upgradeContainer, false)
             
+            val params = cardView.layoutParams as LinearLayout.LayoutParams
+            if (isLandscape) {
+                params.width = 0
+                params.height = LinearLayout.LayoutParams.WRAP_CONTENT
+                params.weight = 1f
+                params.marginEnd = (resources.displayMetrics.density * 16).toInt()
+                params.bottomMargin = 0
+            } else {
+                params.width = LinearLayout.LayoutParams.MATCH_PARENT
+                params.height = LinearLayout.LayoutParams.WRAP_CONTENT
+                params.weight = 0f
+                params.marginEnd = 0
+                params.bottomMargin = (resources.displayMetrics.density * 16).toInt()
+            }
+            cardView.layoutParams = params
+
             val tvRarity: TextView = cardView.findViewById(R.id.tvRarity)
             val tvName: TextView = cardView.findViewById(R.id.tvName)
             val tvDescription: TextView = cardView.findViewById(R.id.tvDescription)
@@ -210,6 +253,54 @@ class GameActivity : AppCompatActivity() {
         Toast.makeText(this, "⬆ LEVEL UP!", Toast.LENGTH_SHORT).show()
     }
 
+    private fun showSettingsDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
+        val sbBgm = dialogView.findViewById<android.widget.SeekBar>(R.id.sbBgm)
+        val sbSfx = dialogView.findViewById<android.widget.SeekBar>(R.id.sbSfx)
+        val swMute = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swMute)
+        val btnClose = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnClose)
+
+        sbBgm.progress = (audioManager.getBgmVolume() * 100).toInt()
+        sbSfx.progress = (audioManager.getSfxVolume() * 100).toInt()
+        swMute.isChecked = audioManager.isMuted()
+
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(dialogView)
+        dialog.window?.let { window ->
+            window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            window.setLayout(
+                (resources.displayMetrics.density * 320).toInt(),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            window.setGravity(android.view.Gravity.CENTER)
+        }
+
+        sbBgm.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: android.widget.SeekBar?, p1: Int, p2: Boolean) {
+                audioManager.setBgmVolume(p1 / 100f)
+            }
+            override fun onStartTrackingTouch(p0: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(p0: android.widget.SeekBar?) {}
+        })
+
+        sbSfx.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: android.widget.SeekBar?, p1: Int, p2: Boolean) {
+                audioManager.setSfxVolume(p1 / 100f)
+            }
+            override fun onStartTrackingTouch(p0: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(p0: android.widget.SeekBar?) {
+                audioManager.playRandomKillSound()
+            }
+        })
+
+        swMute.setOnCheckedChangeListener { _, isChecked ->
+            audioManager.setMuted(isChecked)
+        }
+
+        btnClose.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
     private fun togglePause() {
         val eng = engine ?: return
         if (eng.gameState == GameState.PLAYING) {
@@ -226,20 +317,55 @@ class GameActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         engine?.resume()
+        audioManager.startBgm("game")
     }
 
     override fun onPause() {
         super.onPause()
         engine?.pause()
         saveShardsPermanently()
+        audioManager.stopBgm()
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
+        adjustLayoutForOrientation(newConfig.orientation)
         binding.gameRenderer.post {
             val w = binding.gameRenderer.width.toFloat()
             val h = binding.gameRenderer.height.toFloat()
             engine?.updateScreenSize(w, h)
+        }
+    }
+
+    private fun adjustLayoutForOrientation(orientation: Int) {
+        val isLandscape = orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(binding.root as ConstraintLayout)
+
+        if (isLandscape) {
+            // Pull HUD elements in slightly more in landscape to keep them reachable
+            constraintSet.setGuidelinePercent(R.id.glLeft, 0.08f)
+            constraintSet.setGuidelinePercent(R.id.glRight, 0.92f)
+            constraintSet.setGuidelinePercent(R.id.glBottom, 0.92f)
+            
+            // Adjust Joysticks for landscape
+            constraintSet.constrainPercentWidth(R.id.joystickMove, 0.15f)
+            constraintSet.constrainPercentWidth(R.id.joystickFire, 0.15f)
+        } else {
+            // Standard portrait guidelines
+            constraintSet.setGuidelinePercent(R.id.glLeft, 0.05f)
+            constraintSet.setGuidelinePercent(R.id.glRight, 0.95f)
+            constraintSet.setGuidelinePercent(R.id.glBottom, 0.95f)
+            
+            constraintSet.constrainPercentWidth(R.id.joystickMove, 0.18f)
+            constraintSet.constrainPercentWidth(R.id.joystickFire, 0.18f)
+        }
+        
+        constraintSet.applyTo(binding.root as androidx.constraintlayout.widget.ConstraintLayout)
+        
+        // Update upgrade container if it's currently showing
+        if (binding.upgradeOverlay.visibility == View.VISIBLE) {
+            showUpgradeSelection(lastUpgradeOptions)
         }
     }
 

@@ -33,4 +33,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideCheatManager() = CheatManager()
+
+    @Provides
+    @Singleton
+    fun provideAudioManager(@ApplicationContext ctx: Context) = com.voidascension.utils.AudioManager(ctx)
 }

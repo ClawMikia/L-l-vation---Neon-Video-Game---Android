@@ -94,15 +94,15 @@ class SaveManager @Inject constructor(
         PermanentUpgrade("fire_rate",   "Overdrive Module",    "+10% Fire Rate per level",  180),
 
         // Epic Upgrades
-        PermanentUpgrade("epic_kokey", "Kokey", "1 shot, 1 kill (except bosses)", 8000, maxLevel = 1, isEpic = true),
-        PermanentUpgrade("epic_kekay", "Kekay", "Vaccum / Magnets all nearby loots", 8000, maxLevel = 1, isEpic = true),
-        PermanentUpgrade("epic_umamay", "Umamay Kakay", "Extra life when killed", 8000, maxLevel = 1, isEpic = true),
-        PermanentUpgrade("epic_kokoy", "Kokoy", "All enemies are confused where target is", 8000, maxLevel = 1, isEpic = true),
-        PermanentUpgrade("epic_sukhoi", "Sukhoi SU-47 Berkut", "Homing / following shots", 8000, maxLevel = 1, isEpic = true),
-        PermanentUpgrade("epic_king_cone", "King Cone", "Ultimate overall aura / mutation", 8000, maxLevel = 1, isEpic = true),
-        PermanentUpgrade("epic_bebot", "Bebot & Babet", "Twin player look-alikes helping you", 8000, maxLevel = 1, isEpic = true),
-        PermanentUpgrade("epic_korokoy", "Korokoy", "Shockwave destroys wave & jumps ahead", 8000, maxLevel = 1, isEpic = true),
-        PermanentUpgrade("epic_maurag", "Maurag Supermacy", "All mutations are now acquired", 15000, maxLevel = 1, isEpic = true)
+        PermanentUpgrade("epic_kokey", "Xenon Strike", "1 shot, 1 kill (except bosses)", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_kekay", "Atmos-Vortex Node", "Vaccum / Magnets all nearby loots", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_umamay", "Resurrection Phylactery", "Extra life when killed", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_kokoy", "Neuro-Static Veil", "All enemies are confused where target is", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_sukhoi", "Void-Seeker Fangs", "Homing / following shots", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_king_cone", "Apex Parasite", "Ultimate overall aura / mutation", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_bebot", "Doppelganger Symbionts", "Twin player look-alikes helping you", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_korokoy", "Entropy Wave", "Shockwave destroys wave & jumps ahead", 8000, maxLevel = 1, isEpic = true),
+        PermanentUpgrade("epic_maurag", "The Ascension Protocol", "All mutations are now acquired", 15000, maxLevel = 1, isEpic = true)
     )
 
     fun getVoidShards(): Int = prefs.getInt("void_shards_total", 0)

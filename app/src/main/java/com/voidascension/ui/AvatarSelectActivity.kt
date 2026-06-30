@@ -26,6 +26,9 @@ class AvatarSelectActivity : AppCompatActivity() {
     @Inject
     lateinit var saveManager: SaveManager
 
+    @Inject
+    lateinit var audioManager: com.voidascension.utils.AudioManager
+
     private val prefixes = listOf("Xeno", "Void", "Neuro", "Cyber", "Astro", "Nova", "Proto", "Echo", "Flux")
     private val suffixes = listOf("Alpha", "Omega", "Prime", "Sigma", "X", "Zero", "Core", "Node", "Vector")
 
@@ -34,11 +37,17 @@ class AvatarSelectActivity : AppCompatActivity() {
         binding = ActivityAvatarSelectBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
-        UIUtils.setupRotatedBackground(binding.ivBackground)
-        
         setupAvatarGrid()
         
-        binding.btnBack.setOnClickListener { finish() }
+        binding.btnBack.setOnClickListener {
+            audioManager.playMenuClick()
+            finish()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        audioManager.startBgm("menu")
     }
 
     private fun setupAvatarGrid() {
@@ -74,6 +83,7 @@ class AvatarSelectActivity : AppCompatActivity() {
             }
             
             cardView.setOnClickListener {
+                audioManager.playMenuClick()
                 saveManager.setSelectedAvatar(index)
                 setupAvatarGrid() // Refresh
             }

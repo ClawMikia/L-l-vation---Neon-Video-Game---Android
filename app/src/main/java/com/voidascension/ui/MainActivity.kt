@@ -23,11 +23,13 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var cheatManager: com.voidascension.data.CheatManager
 
+    @Inject
+    lateinit var audioManager: com.voidascension.utils.AudioManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        UIUtils.setupRotatedBackground(binding.ivBackground)
 
         val isGameOver = intent.getBooleanExtra("GAME_OVER", false)
         if (isGameOver) {
@@ -41,19 +43,81 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupUI() {
         binding.btnPlay.setOnClickListener {
+            audioManager.playMenuClick()
             startActivity(Intent(this, GameActivity::class.java))
         }
         binding.btnSelectAvatar.setOnClickListener {
+            audioManager.playMenuClick()
             startActivity(Intent(this, AvatarSelectActivity::class.java))
         }
         binding.btnUpgrades.setOnClickListener {
+            audioManager.playMenuClick()
             startActivity(Intent(this, UpgradeActivity::class.java))
         }
         binding.btnPrestige.setOnClickListener {
+            audioManager.playMenuClick()
             showPrestigeConfirmation()
         }
-        binding.btnQuit.setOnClickListener { finishAffinity() }
-        binding.btnCheats.setOnClickListener { showCheatDialog() }
+        binding.btnQuit.setOnClickListener {
+            audioManager.playMenuClick()
+            finishAffinity()
+        }
+        binding.btnCheats.setOnClickListener {
+            audioManager.playMenuClick()
+            showCheatDialog()
+        }
+        binding.btnSettings.setOnClickListener {
+            audioManager.playMenuClick()
+            showSettingsDialog()
+        }
+    }
+
+    private fun showSettingsDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_settings, null)
+        val sbBgm = dialogView.findViewById<android.widget.SeekBar>(R.id.sbBgm)
+        val sbSfx = dialogView.findViewById<android.widget.SeekBar>(R.id.sbSfx)
+        val swMute = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swMute)
+        val btnClose = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnClose)
+
+        sbBgm.progress = (audioManager.getBgmVolume() * 100).toInt()
+        sbSfx.progress = (audioManager.getSfxVolume() * 100).toInt()
+        swMute.isChecked = audioManager.isMuted()
+
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(dialogView)
+        dialog.window?.let { window ->
+            window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            window.setLayout(
+                (resources.displayMetrics.density * 320).toInt(),
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            window.setGravity(android.view.Gravity.CENTER)
+        }
+
+        sbBgm.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: android.widget.SeekBar?, p1: Int, p2: Boolean) {
+                audioManager.setBgmVolume(p1 / 100f)
+            }
+            override fun onStartTrackingTouch(p0: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(p0: android.widget.SeekBar?) {}
+        })
+
+        sbSfx.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: android.widget.SeekBar?, p1: Int, p2: Boolean) {
+                audioManager.setSfxVolume(p1 / 100f)
+            }
+            override fun onStartTrackingTouch(p0: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(p0: android.widget.SeekBar?) {
+                audioManager.playRandomKillSound() // Test SFX
+            }
+        })
+
+        swMute.setOnCheckedChangeListener { _, isChecked ->
+            audioManager.setMuted(isChecked)
+        }
+
+        btnClose.setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
     private fun showCheatDialog() {
@@ -149,5 +213,14 @@ class MainActivity : AppCompatActivity() {
     private fun loadBestScore() {
         val best = saveManager.loadHighScore()
         binding.tvBestScore.text = "BEST: ${best.score}"
+    }
+
+    override fun onResume() {
+        super.onResume()
+        audioManager.startBgm("menu")
+    }
+
+    override fun onPause() {
+        super.onPause()
     }
 }

@@ -30,6 +30,7 @@ class GameEngine(
     private var screenWidth: Float,
     private var screenHeight: Float,
     private val avatarIndex: Int,
+    private val audioManager: com.voidascension.utils.AudioManager? = null,
     private val onSnapshot: (GameSnapshot) -> Unit,
     private val onGameOver: (score: Int, wave: Int, kills: Int) -> Unit,
     private val onLevelUp: () -> Unit
@@ -176,6 +177,7 @@ class GameEngine(
 
                 lastFireMs = currentTimeMs
                 particleSystem.emitTrail(player.position.x, player.position.y, 0xFF0088FF.toInt())
+                audioManager?.playPlayerShoot()
             }
         }
     }
@@ -209,7 +211,10 @@ class GameEngine(
             if (enemy.isBoss || enemy.type == EnemyType.RIFT_STALKER ||
                 enemy.type == EnemyType.ENTROPY_HERALD || enemy.type == EnemyType.COSMIC_GOD) {
                 val proj = combatSystem.createEnemyProjectile(enemy, player.position, currentTimeMs)
-                if (proj != null) enemyProjectiles.add(proj)
+                if (proj != null) {
+                    enemyProjectiles.add(proj)
+                    audioManager?.playEnemyShoot()
+                }
             }
 
             // Boss abilities
@@ -303,6 +308,7 @@ class GameEngine(
 
     private fun collectLoot(loot: LootItem, currentTimeMs: Long) {
         loot.collected = true
+        audioManager?.playLootSound()
         when (loot.type) {
             LootItemType.HEALTH_PACK -> {
                 player.heal(loot.value)
@@ -506,6 +512,8 @@ class GameEngine(
         enemy.isAlive = false
         player.killCount++
         
+        audioManager?.playRandomKillSound()
+
         if (player.isAikiActive) {
             triggerLevelUp()
         }

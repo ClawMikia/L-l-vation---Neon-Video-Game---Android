@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_cyberpunk_card">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AUDIO CALIBRATION"
+        android:textColor="#00FFFF"
+        android:textSize="20sp"
+        android:fontFamily="monospace"
+        android:layout_gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="BGM VOLUME"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:fontFamily="monospace" />
+
+    <SeekBar
+        android:id="@+id/sbBgm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:max="100"
+        android:progressDrawable="@android:drawable/progress_horizontal"
+        android:thumbTint="#00FFFF" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SFX VOLUME"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:fontFamily="monospace" />
+
+    <SeekBar
+        android:id="@+id/sbSfx"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:max="100"
+        android:progressDrawable="@android:drawable/progress_horizontal"
+        android:thumbTint="#00FFFF" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/swMute"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SILENCE MODE (MUTE)"
+        android:textColor="#FFFFFF"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="24dp"
+        app:thumbTint="#00FFFF"
+        app:trackTint="#005555" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnClose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="CLOSE"
+        android:textColor="#00FFFF"
+        app:strokeColor="#00FFFF"
+        app:strokeWidth="2dp"
+        app:backgroundTint="#0A0F1E"
+        android:fontFamily="monospace" />
+
+</LinearLayout>
