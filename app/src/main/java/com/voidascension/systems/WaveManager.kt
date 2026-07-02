@@ -75,7 +75,7 @@ class WaveManager(
                 enemies.add(EnemySpawnConfig(EnemyType.PHASE_PHANTOM, (baseCount * 0.15f).toInt(), spawnDelayMs = 4000L))
             }
             else -> {
-                // Wave 21+: Mix of all types including new ones
+                // Wave 21+: Mix of all types including new ones, scaling complexity
                 val allTypes = EnemyType.entries.filter { 
                     it != EnemyType.VOID_TITAN && it != EnemyType.COSMIC_GOD &&
                     it != EnemyType.ENTROPY_HERALD && it != EnemyType.ELDRITCH_HORROR &&
@@ -84,10 +84,20 @@ class WaveManager(
                     !it.name.contains("GOD") && !it.name.contains("ARCHON") &&
                     !it.name.contains("SERPENT") && !it.name.contains("LORD")
                 }
-                val selection = allTypes.shuffled().take(6)
-                val perType = max(1, baseCount / selection.size)
+                val selectionCount = min(allTypes.size, 6 + (wave - 20) / 5)
+                val selection = allTypes.shuffled().take(selectionCount)
+                val perType = max(2, baseCount / selection.size)
                 selection.forEachIndexed { i, type ->
-                    enemies.add(EnemySpawnConfig(type, perType, spawnDelayMs = i * 2500L))
+                    enemies.add(EnemySpawnConfig(
+                        type = type, 
+                        count = perType, 
+                        spawnDelayMs = i * 1500L,
+                        interval = max(100L, 500L - wave * 2L)
+                    ))
+                }
+                // Add a random mini-boss at high waves
+                if (wave > 30 && Random.nextFloat() < 0.3f) {
+                    enemies.add(EnemySpawnConfig(EnemyType.VOID_TITAN, 1, isBoss = true, spawnDelayMs = 15000L))
                 }
             }
         }
@@ -116,28 +126,34 @@ class WaveManager(
             EnemyType.OMEGA_PHANTOM, EnemyType.GALAXY_TITAN, EnemyType.COSMIC_SERPENT,
             EnemyType.ENTROPY_KING
         )
-        val bossType = bosses.random()
+        val bossCount = if (wave > 50) 3 else if (wave > 25) 2 else 1
+        val selectedBosses = mutableListOf<EnemySpawnConfig>()
+        
+        repeat(bossCount) { i ->
+            selectedBosses.add(EnemySpawnConfig(bosses.random(), 1, isBoss = true, isMainBoss = (i == 0), spawnDelayMs = i * 5000L))
+        }
 
+        val addonCount = (10 + wave / 2)
         val addons = when {
-            wave > 10 -> listOf(
-                EnemySpawnConfig(EnemyType.VOID_CRAWLER, 8, spawnDelayMs = 5000L),
-                EnemySpawnConfig(EnemyType.COSMIC_SHADE, 6, spawnDelayMs = 10000L)
+            wave > 30 -> listOf(
+                EnemySpawnConfig(EnemyType.NEBULA_WRAITH, addonCount / 2, spawnDelayMs = 5000L),
+                EnemySpawnConfig(EnemyType.RIFT_STALKER, addonCount / 2, spawnDelayMs = 10000L),
+                EnemySpawnConfig(EnemyType.ABYSS_KNIGHT, 5, spawnDelayMs = 15000L),
+                EnemySpawnConfig(EnemyType.GRAVITY_WELLER, 5, spawnDelayMs = 20000L)
             )
-            wave > 20 -> listOf(
-                EnemySpawnConfig(EnemyType.NEBULA_WRAITH, 8, spawnDelayMs = 5000L),
-                EnemySpawnConfig(EnemyType.RIFT_STALKER, 6, spawnDelayMs = 10000L),
-                EnemySpawnConfig(EnemyType.ABYSS_KNIGHT, 4, spawnDelayMs = 15000L),
-                EnemySpawnConfig(EnemyType.GRAVITY_WELLER, 4, spawnDelayMs = 20000L)
+            wave > 10 -> listOf(
+                EnemySpawnConfig(EnemyType.VOID_CRAWLER, addonCount / 2, spawnDelayMs = 5000L),
+                EnemySpawnConfig(EnemyType.COSMIC_SHADE, addonCount / 2, spawnDelayMs = 10000L)
             )
             else -> emptyList()
         }
 
-        val bossName = bossType.name.replace("_", " ")
+        val bossName = if (bossCount > 1) "VOID COUNCIL" else selectedBosses[0].type.name.replace("_", " ")
 
         return WaveConfig(
             waveNumber = wave,
             isBossWave = true,
-            enemies = listOf(EnemySpawnConfig(bossType, 1, isBoss = true, isMainBoss = true)) + addons,
+            enemies = selectedBosses + addons,
             durationMs = 120_000L,
             title = bossName
         )

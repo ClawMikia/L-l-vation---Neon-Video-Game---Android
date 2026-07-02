@@ -26,19 +26,36 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var audioManager: com.voidascension.utils.AudioManager
 
+    private lateinit var tutorialManager: TutorialManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        tutorialManager = TutorialManager(saveManager)
+
         val isGameOver = intent.getBooleanExtra("GAME_OVER", false)
         if (isGameOver) {
             showGameOverStats()
+        } else {
+            binding.root.post { showIntroTutorial() }
         }
 
         setupUI()
         applyAnimations()
         loadBestScore()
+    }
+
+    private fun showIntroTutorial() {
+        val steps = listOf(
+            TutorialManager.TutorialStep("Welcome to VOID ASCENSION! Your neural link to the bio-ship is now active.", targetViewId = R.id.tvTitle),
+            TutorialManager.TutorialStep("Tap DEPLOY to begin your infestation of the sector.", targetViewId = R.id.btnPlay),
+            TutorialManager.TutorialStep("Select different BIO-FORMS to change your base capabilities.", targetViewId = R.id.btnSelectAvatar),
+            TutorialManager.TutorialStep("Use VOID SHARDS collected from Titans to evolve permanently.", targetViewId = R.id.btnUpgrades),
+            TutorialManager.TutorialStep("Configure your auto-combat systems and audio here.", targetViewId = R.id.btnSettings)
+        )
+        tutorialManager.showTutorial(this, "main_intro", steps)
     }
 
     private fun setupUI() {
@@ -77,11 +94,17 @@ class MainActivity : AppCompatActivity() {
         val sbBgm = dialogView.findViewById<android.widget.SeekBar>(R.id.sbBgm)
         val sbSfx = dialogView.findViewById<android.widget.SeekBar>(R.id.sbSfx)
         val swMute = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swMute)
+        val swAutoMove = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swAutoMove)
+        val swAutoFire = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swAutoFire)
+        val swAutoUpgrade = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swAutoUpgrade)
         val btnClose = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnClose)
 
         sbBgm.progress = (audioManager.getBgmVolume() * 100).toInt()
         sbSfx.progress = (audioManager.getSfxVolume() * 100).toInt()
         swMute.isChecked = audioManager.isMuted()
+        swAutoMove.isChecked = saveManager.isAutoMove()
+        swAutoFire.isChecked = saveManager.isAutoFire()
+        swAutoUpgrade.isChecked = saveManager.isAutoUpgrade()
 
         val dialog = android.app.Dialog(this)
         dialog.setContentView(dialogView)
@@ -114,6 +137,18 @@ class MainActivity : AppCompatActivity() {
 
         swMute.setOnCheckedChangeListener { _, isChecked ->
             audioManager.setMuted(isChecked)
+        }
+
+        swAutoMove.setOnCheckedChangeListener { _, isChecked ->
+            saveManager.setAutoMove(isChecked)
+        }
+
+        swAutoFire.setOnCheckedChangeListener { _, isChecked ->
+            saveManager.setAutoFire(isChecked)
+        }
+
+        swAutoUpgrade.setOnCheckedChangeListener { _, isChecked ->
+            saveManager.setAutoUpgrade(isChecked)
         }
 
         btnClose.setOnClickListener { dialog.dismiss() }

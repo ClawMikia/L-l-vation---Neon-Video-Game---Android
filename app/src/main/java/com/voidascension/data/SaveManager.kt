@@ -172,6 +172,18 @@ class SaveManager @Inject constructor(
         prefs.edit().putInt("selected_avatar", index).apply()
     }
 
+    fun isAutoMove(): Boolean = prefs.getBoolean("settings_auto_move", false)
+    fun setAutoMove(enabled: Boolean) = prefs.edit().putBoolean("settings_auto_move", enabled).apply()
+
+    fun isAutoFire(): Boolean = prefs.getBoolean("settings_auto_fire", true)
+    fun setAutoFire(enabled: Boolean) = prefs.edit().putBoolean("settings_auto_fire", enabled).apply()
+
+    fun isAutoUpgrade(): Boolean = prefs.getBoolean("settings_auto_upgrade", false)
+    fun setAutoUpgrade(enabled: Boolean) = prefs.edit().putBoolean("settings_auto_upgrade", enabled).apply()
+
+    fun isTutorialCompleted(id: String): Boolean = prefs.getBoolean("tut_$id", false)
+    fun markTutorialCompleted(id: String) = prefs.edit().putBoolean("tut_$id", true).apply()
+
     fun prestige() {
         prefs.edit().clear().apply()
         // Run database clearing in a background thread if possible, or just use clearAllTables

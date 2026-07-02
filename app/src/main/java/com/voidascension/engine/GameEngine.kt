@@ -2,6 +2,7 @@ package com.voidascension.engine
 
 import com.voidascension.entities.*
 import com.voidascension.systems.*
+import com.voidascension.data.SaveManager
 import com.voidascension.utils.Vector2
 import kotlinx.coroutines.*
 import kotlin.math.*
@@ -31,6 +32,7 @@ class GameEngine(
     private var screenHeight: Float,
     private val avatarIndex: Int,
     private val audioManager: com.voidascension.utils.AudioManager? = null,
+    private val saveManager: SaveManager? = null,
     private val onSnapshot: (GameSnapshot) -> Unit,
     private val onGameOver: (score: Int, wave: Int, kills: Int) -> Unit,
     private val onLevelUp: () -> Unit
@@ -124,9 +126,21 @@ class GameEngine(
     private fun updatePlayer(dt: Float, currentTimeMs: Long) {
         player.checkInvincibility(currentTimeMs)
 
-        // Movement from joystick
-        if (joystickDelta.length() > 0.05f) {
-            val move = joystickDelta.normalized() * player.effectiveSpeed * dt
+        // Movement from joystick or Auto-Move
+        val moveDelta = if (joystickDelta.length() > 0.05f) {
+            joystickDelta
+        } else if (saveManager?.isAutoMove() == true) {
+            // Auto-move towards nearest enemy but keep some distance, or nearest loot?
+            // Let's go with towards nearest enemy for now.
+            combatSystem.findNearestEnemy(player.position, enemies)?.let { nearest ->
+                (nearest.position - player.position).normalized()
+            } ?: Vector2()
+        } else {
+            Vector2()
+        }
+
+        if (moveDelta.length() > 0.05f) {
+            val move = moveDelta.normalized() * player.effectiveSpeed * dt
             player.position.x = (player.position.x + move.x).coerceIn(player.radius, screenWidth - player.radius)
             player.position.y = (player.position.y + move.y).coerceIn(player.radius, screenHeight - player.radius)
             particleSystem.emitTrail(player.position.x, player.position.y, 0xFF004488.toInt())
@@ -190,9 +204,14 @@ class GameEngine(
                 player.position.y + fireJoystickDelta.y * 300f
             )
         }
-        // Otherwise auto-aim at nearest enemy
-        val nearest = combatSystem.findNearestEnemy(player.position, enemies)
-        return nearest?.position
+        
+        // Otherwise auto-aim at nearest enemy if setting is enabled
+        if (saveManager?.isAutoFire() != false) {
+            val nearest = combatSystem.findNearestEnemy(player.position, enemies)
+            return nearest?.position
+        }
+        
+        return null
     }
 
     private fun updateEnemies(dt: Float, currentTimeMs: Long) {
@@ -469,8 +488,14 @@ class GameEngine(
         val activeEnemies = enemies.count { it.isAlive }
         if (waveManager.isWaveComplete(activeEnemies)) {
             // Give upgrade choices on wave complete
-            upgradeOptions = lootSystem.generateUpgradeChoices(player, player.waveNumber)
-            gameState = GameState.UPGRADE_SELECT
+            val options = lootSystem.generateUpgradeChoices(player, player.waveNumber)
+            
+            if (saveManager?.isAutoUpgrade() == true && options.isNotEmpty()) {
+                selectUpgrade(options.random())
+            } else {
+                upgradeOptions = options
+                gameState = GameState.UPGRADE_SELECT
+            }
 
             player.waveNumber++
             waveTitle = if (player.waveNumber % GameConstants.BOSS_WAVE_INTERVAL == 0)

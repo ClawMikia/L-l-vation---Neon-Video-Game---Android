@@ -33,6 +33,7 @@ class GameActivity : AppCompatActivity() {
     private var engine: GameEngine? = null
     private var lastSnapshotState = GameState.PLAYING
     private var shardsSavedThisRun = 0
+    private lateinit var tutorialManager: TutorialManager
 
     private fun saveShardsPermanently() {
         val currentShards = engine?.player?.collectedVoidShards ?: 0
@@ -54,9 +55,14 @@ class GameActivity : AppCompatActivity() {
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        tutorialManager = TutorialManager(saveManager)
+
         adjustLayoutForOrientation(resources.configuration.orientation)
 
-        binding.gameRenderer.post { initGame() }
+        binding.gameRenderer.post {
+            initGame()
+            showGameTutorial()
+        }
         binding.btnPause.setOnClickListener {
             audioManager.playMenuClick()
             togglePause()
@@ -79,6 +85,16 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
+    private fun showGameTutorial() {
+        val steps = listOf(
+            TutorialManager.TutorialStep("Manipulate the left NEURAL LINK to move your vessel.", targetViewId = R.id.joystickMove),
+            TutorialManager.TutorialStep("Use the right NEURAL LINK to direct manual weapon discharge.", targetViewId = R.id.joystickFire),
+            TutorialManager.TutorialStep("Monitor your BIOMASS HP and XP levels at the top-left.", xPercent = 0.25f, yPercent = 0.05f),
+            TutorialManager.TutorialStep("Defeat waves of hostiles. Collect glowing XP SHARDS to initiate evolution.", xPercent = 0.5f, yPercent = 0.5f)
+        )
+        tutorialManager.showTutorial(this, "game_play", steps)
+    }
+
     private fun toggleOrientation() {
         val currentOrientation = resources.configuration.orientation
         requestedOrientation = if (currentOrientation == android.content.res.Configuration.ORIENTATION_PORTRAIT) {
@@ -97,6 +113,7 @@ class GameActivity : AppCompatActivity() {
             screenHeight = h,
             avatarIndex = saveManager.getSelectedAvatar(),
             audioManager = audioManager,
+            saveManager = saveManager,
             onSnapshot = { snap -> handleSnapshot(snap) },
             onGameOver = { score, wave, kills -> handleGameOver(score, wave, kills) },
             onLevelUp = { runOnUiThread { showLevelUpToast() } }
@@ -258,11 +275,17 @@ class GameActivity : AppCompatActivity() {
         val sbBgm = dialogView.findViewById<android.widget.SeekBar>(R.id.sbBgm)
         val sbSfx = dialogView.findViewById<android.widget.SeekBar>(R.id.sbSfx)
         val swMute = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swMute)
+        val swAutoMove = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swAutoMove)
+        val swAutoFire = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swAutoFire)
+        val swAutoUpgrade = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.swAutoUpgrade)
         val btnClose = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnClose)
 
         sbBgm.progress = (audioManager.getBgmVolume() * 100).toInt()
         sbSfx.progress = (audioManager.getSfxVolume() * 100).toInt()
         swMute.isChecked = audioManager.isMuted()
+        swAutoMove.isChecked = saveManager.isAutoMove()
+        swAutoFire.isChecked = saveManager.isAutoFire()
+        swAutoUpgrade.isChecked = saveManager.isAutoUpgrade()
 
         val dialog = android.app.Dialog(this)
         dialog.setContentView(dialogView)
@@ -295,6 +318,18 @@ class GameActivity : AppCompatActivity() {
 
         swMute.setOnCheckedChangeListener { _, isChecked ->
             audioManager.setMuted(isChecked)
+        }
+
+        swAutoMove.setOnCheckedChangeListener { _, isChecked ->
+            saveManager.setAutoMove(isChecked)
+        }
+
+        swAutoFire.setOnCheckedChangeListener { _, isChecked ->
+            saveManager.setAutoFire(isChecked)
+        }
+
+        swAutoUpgrade.setOnCheckedChangeListener { _, isChecked ->
+            saveManager.setAutoUpgrade(isChecked)
         }
 
         btnClose.setOnClickListener { dialog.dismiss() }

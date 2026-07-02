@@ -60,6 +60,39 @@
         android:text="SILENCE MODE (MUTE)"
         android:textColor="#FFFFFF"
         android:fontFamily="monospace"
+        android:layout_marginBottom="8dp"
+        app:thumbTint="#00FFFF"
+        app:trackTint="#005555" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/swAutoMove"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AUTO MOVE (TARGET NEAREST)"
+        android:textColor="#FFFFFF"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="8dp"
+        app:thumbTint="#00FFFF"
+        app:trackTint="#005555" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/swAutoFire"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AUTO FIRE (TARGET NEAREST)"
+        android:textColor="#FFFFFF"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="8dp"
+        app:thumbTint="#00FFFF"
+        app:trackTint="#005555" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/swAutoUpgrade"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AUTO CHOOSE UPGRADE"
+        android:textColor="#FFFFFF"
+        android:fontFamily="monospace"
         android:layout_marginBottom="24dp"
         app:thumbTint="#00FFFF"
         app:trackTint="#005555" />
