@@ -82,6 +82,7 @@ class Player(
     var isAikiActive: Boolean = false
     var isMochiMochiActive: Boolean = false
     var isMotomemashitaActive: Boolean = false
+    var isMoriheiUeshibaActive: Boolean = false
 
     // Timed Buffs
     private val timedBuffs = mutableListOf<TimedBuff>()

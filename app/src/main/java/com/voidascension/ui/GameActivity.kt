@@ -156,6 +156,9 @@ class GameActivity : AppCompatActivity() {
         if (cheatManager.isMotomemashitaActive) {
             p.isMotomemashitaActive = true
         }
+        if (cheatManager.isMoriheiUeshibaActive) {
+            p.isMoriheiUeshibaActive = true
+        }
         
         // Reset them for next run as they are "one gameplay only"
         cheatManager.resetTemporaryCheats()

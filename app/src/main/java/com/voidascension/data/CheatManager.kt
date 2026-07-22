@@ -11,6 +11,7 @@ class CheatManager @Inject constructor() {
     var isAikiActive = false
     var isMochiMochiActive = false
     var isMotomemashitaActive = false
+    var isMoriheiUeshibaActive = false
 
     fun activateCheat(code: String, saveManager: SaveManager): String {
         return when (code.trim()) {
@@ -38,6 +39,10 @@ class CheatManager @Inject constructor() {
                 isMotomemashitaActive = true
                 "SYSTEM OVERRIDE: REVENGE PROTOCOL ONLINE"
             }
+            "Morihei Ueshiba" -> {
+                isMoriheiUeshibaActive = true
+                "SYSTEM OVERRIDE: AIKIDO PROTOCOL ENGAGED"
+            }
             else -> "UNACCEPTED AUTHENTICATION CODE"
         }
     }
@@ -48,5 +53,6 @@ class CheatManager @Inject constructor() {
         isAikiActive = false
         isMochiMochiActive = false
         isMotomemashitaActive = false
+        isMoriheiUeshibaActive = false
     }
 }

@@ -75,6 +75,7 @@ class GameEngine(
     fun updateScreenSize(newW: Float, newH: Float) {
         screenWidth = newW
         screenHeight = newH
+        player.position.set(newW / 2f, newH / 2f)
         waveManager.updateScreenSize(newW, newH)
     }
 
@@ -222,7 +223,13 @@ class GameEngine(
         // Update AI
         for (enemy in enemies) {
             if (!enemy.isAlive) continue
-            enemy.updateAI(player.position, currentTimeMs, dt, player.isEnemiesConfused)
+            if (enemy.pushedTimer > 0f) {
+                enemy.pushedTimer -= dt
+                enemy.velocity.x *= 0.96f
+                enemy.velocity.y *= 0.96f
+            } else {
+                enemy.updateAI(player.position, currentTimeMs, dt, player.isEnemiesConfused)
+            }
             enemy.position.x += enemy.velocity.x * dt
             enemy.position.y += enemy.velocity.y * dt
 
@@ -410,15 +417,23 @@ class GameEngine(
             val distSq = player.position.distanceSquaredTo(enemy.position)
             val radiusSum = player.radius + enemy.radius
             if (distSq <= radiusSum * radiusSum) {
-                val dmg = player.takeDamage(enemy.damage, currentTimeMs)
-                if (dmg > 0f) {
-                    particleSystem.emitPlayerDamage(player.position.x, player.position.y)
-                    triggerScreenShake(GameConstants.SHAKE_AMPLITUDE, currentTimeMs)
-                    addFloatingText(player.position, "-${dmg.toInt()}", 0xFFFF0000.toInt())
-                    
-                    if (player.isMotomemashitaActive) {
-                        enemy.takeDamage(enemy.currentHp + 1000f)
-                        onEnemyKilled(enemy, currentTimeMs)
+                if (player.isMoriheiUeshibaActive) {
+                    val pushDir = (enemy.position - player.position).normalized()
+                    enemy.velocity.set(pushDir.x * 500f, pushDir.y * 500f)
+                    enemy.pushedTimer = 1.0f
+                    particleSystem.emitPlayerDamage(enemy.position.x, enemy.position.y)
+                    addFloatingText(enemy.position, "DEFLECTED", 0x00FFAAFF.toInt())
+                } else {
+                    val dmg = player.takeDamage(enemy.damage, currentTimeMs)
+                    if (dmg > 0f) {
+                        particleSystem.emitPlayerDamage(player.position.x, player.position.y)
+                        triggerScreenShake(GameConstants.SHAKE_AMPLITUDE, currentTimeMs)
+                        addFloatingText(player.position, "-${dmg.toInt()}", 0xFFFF0000.toInt())
+
+                        if (player.isMotomemashitaActive) {
+                            enemy.takeDamage(enemy.currentHp + 1000f)
+                            onEnemyKilled(enemy, currentTimeMs)
+                        }
                     }
                 }
             }

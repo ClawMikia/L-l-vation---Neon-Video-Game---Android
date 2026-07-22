@@ -50,6 +50,7 @@ class Enemy(
     var velocity: Vector2 = Vector2()
     var aiState: EnemyAIState = EnemyAIState.SPAWNING
     var spawnProgress: Float = 0f // 0..1 spawn animation
+    var pushedTimer: Float = 0f // AI-disabled slide timer (Morihei Ueshiba)
     var lastAttackMs: Long = 0L
     var attackCooldownMs: Long = calculateAttackCooldown()
     var enrageThreshold: Float = 0.3f // HP% at which to enrage
