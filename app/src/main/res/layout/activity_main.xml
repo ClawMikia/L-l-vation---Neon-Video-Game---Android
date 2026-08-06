@@ -6,8 +6,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/background">
 
-
-
     <!-- Scanline overlay (Alien Green) -->
     <View
         android:layout_width="match_parent"
@@ -18,20 +16,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Title -->
-    <LinearLayout
-        android:id="@+id/titleBlock"
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glVertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.45" />
+
+    <!-- Title on the Left -->
+    <LinearLayout
+        android:id="@+id/titleBlock"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:gravity="center"
+        android:layout_marginStart="32dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/scrollMenu"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintVertical_bias="0.1"
-        android:layout_marginTop="24dp">
+        app:layout_constraintEnd_toStartOf="@id/glVertical">
 
         <TextView
             android:id="@+id/tvTitle"
@@ -39,9 +42,9 @@
             android:layout_height="wrap_content"
             android:text="VOID"
             android:textColor="@color/alien_green"
-            android:textSize="64sp"
+            android:textSize="80sp"
             android:fontFamily="monospace"
-            android:letterSpacing="0.3"
+            android:letterSpacing="0.2"
             android:shadowColor="@color/alien_green"
             android:shadowRadius="25"
             android:shadowDx="0"
@@ -50,11 +53,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ASCENSION"
+            android:text="DESIRA"
             android:textColor="@color/alien_cyan"
-            android:textSize="28sp"
+            android:textSize="32sp"
             android:fontFamily="monospace"
-            android:letterSpacing="0.5"
+            android:letterSpacing="0.4"
             android:shadowColor="@color/alien_cyan"
             android:shadowRadius="15"
             android:shadowDx="0"
@@ -63,143 +66,163 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="◈ XENOS INFILTRATION DETECTED ◈"
+            android:text="◈ XENOS INFILTRATION ◈"
             android:textColor="#BBBBBB"
             android:textSize="14sp"
             android:fontFamily="monospace"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="12dp"/>
     </LinearLayout>
 
-    <!-- Menu Card -->
+    <!-- Menu Card on the Right -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollMenu"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constrainedHeight="true"
         android:fillViewport="true"
         android:overScrollMode="never"
         android:scrollbars="none"
-        app:layout_constraintTop_toBottomOf="@id/titleBlock"
-        app:layout_constraintBottom_toTopOf="@id/tvBestScore"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp">
+        android:layout_marginEnd="32dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/glVertical"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:id="@+id/cardMenu"
-            android:layout_width="300dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
             android:background="@drawable/bg_cyberpunk_card"
-            android:padding="24dp">
+            android:padding="16dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPlay"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="☣  INITIATE ASCENSION"
+                android:layout_height="50dp"
+                android:text="☣  INITIATE"
                 android:fontFamily="monospace"
-                android:textSize="15sp"
-                android:maxLines="1"
-                android:ellipsize="none"
-                android:letterSpacing="0.05"
+                android:textSize="14sp"
                 android:textColor="@color/alien_green"
                 app:backgroundTint="#0A0F1E"
                 app:strokeColor="@color/alien_green"
                 app:strokeWidth="2dp"
                 app:cornerRadius="4dp"
-                android:layout_marginBottom="10dp"/>
+                android:layout_marginBottom="8dp"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSelectAvatar"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="👤  SELECT BIOMASS"
-                android:fontFamily="monospace"
-                android:textSize="15sp"
-                android:maxLines="1"
-                android:textColor="@color/alien_cyan"
-                app:backgroundTint="#0A0F1E"
-                app:strokeColor="@color/alien_cyan"
-                app:strokeWidth="2dp"
-                app:cornerRadius="4dp"
-                android:layout_marginBottom="10dp"/>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnUpgrades"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="🧬  MUTATIONS"
-                android:fontFamily="monospace"
-                android:textSize="15sp"
-                android:maxLines="1"
-                android:textColor="@color/alien_purple"
-                app:backgroundTint="#0A0F1E"
-                app:strokeColor="@color/alien_purple"
-                app:strokeWidth="2dp"
-                app:cornerRadius="4dp"
-                android:layout_marginBottom="10dp"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSelectAvatar"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="👤 BIOMASS"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="@color/alien_cyan"
+                    app:backgroundTint="#0A0F1E"
+                    app:strokeColor="@color/alien_cyan"
+                    app:strokeWidth="2dp"
+                    app:cornerRadius="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginBottom="8dp"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPrestige"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="☢  PRESTIGE"
-                android:fontFamily="monospace"
-                android:textSize="15sp"
-                android:maxLines="1"
-                android:textColor="#FF8800"
-                app:backgroundTint="#0A0F1E"
-                app:strokeColor="#FF8800"
-                app:strokeWidth="2dp"
-                app:cornerRadius="4dp"
-                android:layout_marginBottom="10dp"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnUpgrades"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="🧬 MUTATIONS"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="@color/alien_purple"
+                    app:backgroundTint="#0A0F1E"
+                    app:strokeColor="@color/alien_purple"
+                    app:strokeWidth="2dp"
+                    app:cornerRadius="4dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginBottom="8dp"/>
+            </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnQuit"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="✕  ABORT"
-                android:fontFamily="monospace"
-                android:textSize="15sp"
-                android:maxLines="1"
-                android:textColor="#FF4444"
-                app:backgroundTint="#0A0F1E"
-                app:strokeColor="#FF4444"
-                app:strokeWidth="2dp"
-                app:cornerRadius="4dp"
-                android:layout_marginBottom="10dp"/>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCheats"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="⌨  AUTH BYPASS"
-                android:fontFamily="monospace"
-                android:textSize="15sp"
-                android:maxLines="1"
-                android:textColor="#00FFFF"
-                app:backgroundTint="#0A0F1E"
-                app:strokeColor="#00FFFF"
-                app:strokeWidth="2dp"
-                app:cornerRadius="4dp"
-                android:layout_marginBottom="10dp"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSettings"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="⚙ CALIB"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="#FFFFFF"
+                    app:backgroundTint="#0A0F1E"
+                    app:strokeColor="#FFFFFF"
+                    app:strokeWidth="2dp"
+                    app:cornerRadius="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginBottom="8dp"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSettings"
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCheats"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="⌨ BYPASS"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="#00FFFF"
+                    app:backgroundTint="#0A0F1E"
+                    app:strokeColor="#00FFFF"
+                    app:strokeWidth="2dp"
+                    app:cornerRadius="4dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginBottom="8dp"/>
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="⚙  CALIBRATION"
-                android:fontFamily="monospace"
-                android:textSize="15sp"
-                android:maxLines="1"
-                android:textColor="#FFFFFF"
-                app:backgroundTint="#0A0F1E"
-                app:strokeColor="#FFFFFF"
-                app:strokeWidth="2dp"
-                app:cornerRadius="4dp"/>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPrestige"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="☢ RESET"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="#FF8800"
+                    app:backgroundTint="#0A0F1E"
+                    app:strokeColor="#FF8800"
+                    app:strokeWidth="2dp"
+                    app:cornerRadius="4dp"
+                    android:layout_marginEnd="4dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnQuit"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:text="✕ ABORT"
+                    android:fontFamily="monospace"
+                    android:textSize="12sp"
+                    android:textColor="#FF4444"
+                    app:backgroundTint="#0A0F1E"
+                    app:strokeColor="#FF4444"
+                    app:strokeWidth="2dp"
+                    app:cornerRadius="4dp"
+                    android:layout_marginStart="4dp"/>
+            </LinearLayout>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -215,6 +238,6 @@
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginEnd="16dp"/>
+        android:layout_marginEnd="32dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

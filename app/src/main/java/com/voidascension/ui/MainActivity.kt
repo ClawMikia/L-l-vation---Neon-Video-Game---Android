@@ -26,36 +26,19 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var audioManager: com.voidascension.utils.AudioManager
 
-    private lateinit var tutorialManager: TutorialManager
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        tutorialManager = TutorialManager(saveManager)
-
         val isGameOver = intent.getBooleanExtra("GAME_OVER", false)
         if (isGameOver) {
             showGameOverStats()
-        } else {
-            binding.root.post { showIntroTutorial() }
         }
 
         setupUI()
         applyAnimations()
         loadBestScore()
-    }
-
-    private fun showIntroTutorial() {
-        val steps = listOf(
-            TutorialManager.TutorialStep("Welcome to VOID ASCENSION! Your neural link to the bio-ship is now active.", targetViewId = R.id.tvTitle),
-            TutorialManager.TutorialStep("Tap DEPLOY to begin your infestation of the sector.", targetViewId = R.id.btnPlay),
-            TutorialManager.TutorialStep("Select different BIO-FORMS to change your base capabilities.", targetViewId = R.id.btnSelectAvatar),
-            TutorialManager.TutorialStep("Use VOID SHARDS collected from Titans to evolve permanently.", targetViewId = R.id.btnUpgrades),
-            TutorialManager.TutorialStep("Configure your auto-combat systems and audio here.", targetViewId = R.id.btnSettings)
-        )
-        tutorialManager.showTutorial(this, "main_intro", steps)
     }
 
     private fun setupUI() {

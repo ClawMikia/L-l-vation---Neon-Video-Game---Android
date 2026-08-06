@@ -33,8 +33,6 @@ class GameActivity : AppCompatActivity() {
     private var engine: GameEngine? = null
     private var lastSnapshotState = GameState.PLAYING
     private var shardsSavedThisRun = 0
-    private lateinit var tutorialManager: TutorialManager
-
     private fun saveShardsPermanently() {
         val currentShards = engine?.player?.collectedVoidShards ?: 0
         val newShards = currentShards - shardsSavedThisRun
@@ -55,13 +53,10 @@ class GameActivity : AppCompatActivity() {
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        tutorialManager = TutorialManager(saveManager)
-
         adjustLayoutForOrientation(resources.configuration.orientation)
 
         binding.gameRenderer.post {
             initGame()
-            showGameTutorial()
         }
         binding.btnPause.setOnClickListener {
             audioManager.playMenuClick()
@@ -78,29 +73,6 @@ class GameActivity : AppCompatActivity() {
         binding.btnQuit.setOnClickListener {
             audioManager.playMenuClick()
             finish()
-        }
-        binding.btnOrientation.setOnClickListener {
-            audioManager.playMenuClick()
-            toggleOrientation()
-        }
-    }
-
-    private fun showGameTutorial() {
-        val steps = listOf(
-            TutorialManager.TutorialStep("Manipulate the left NEURAL LINK to move your vessel.", targetViewId = R.id.joystickMove),
-            TutorialManager.TutorialStep("Use the right NEURAL LINK to direct manual weapon discharge.", targetViewId = R.id.joystickFire),
-            TutorialManager.TutorialStep("Monitor your BIOMASS HP and XP levels at the top-left.", xPercent = 0.25f, yPercent = 0.05f),
-            TutorialManager.TutorialStep("Defeat waves of hostiles. Collect glowing XP SHARDS to initiate evolution.", xPercent = 0.5f, yPercent = 0.5f)
-        )
-        tutorialManager.showTutorial(this, "game_play", steps)
-    }
-
-    private fun toggleOrientation() {
-        val currentOrientation = resources.configuration.orientation
-        requestedOrientation = if (currentOrientation == android.content.res.Configuration.ORIENTATION_PORTRAIT) {
-            android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        } else {
-            android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
     }
 
@@ -182,27 +154,18 @@ class GameActivity : AppCompatActivity() {
         binding.upgradeContainer.removeAllViews()
 
         val inflater = LayoutInflater.from(this)
-        val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         
-        binding.upgradeContainer.orientation = if (isLandscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+        binding.upgradeContainer.orientation = LinearLayout.HORIZONTAL
         
         options.forEach { option ->
             val cardView = inflater.inflate(R.layout.item_upgrade_card, binding.upgradeContainer, false)
             
             val params = cardView.layoutParams as LinearLayout.LayoutParams
-            if (isLandscape) {
-                params.width = 0
-                params.height = LinearLayout.LayoutParams.WRAP_CONTENT
-                params.weight = 1f
-                params.marginEnd = (resources.displayMetrics.density * 16).toInt()
-                params.bottomMargin = 0
-            } else {
-                params.width = LinearLayout.LayoutParams.MATCH_PARENT
-                params.height = LinearLayout.LayoutParams.WRAP_CONTENT
-                params.weight = 0f
-                params.marginEnd = 0
-                params.bottomMargin = (resources.displayMetrics.density * 16).toInt()
-            }
+            params.width = 0
+            params.height = LinearLayout.LayoutParams.WRAP_CONTENT
+            params.weight = 1f
+            params.marginEnd = (resources.displayMetrics.density * 16).toInt()
+            params.bottomMargin = 0
             cardView.layoutParams = params
 
             val tvRarity: TextView = cardView.findViewById(R.id.tvRarity)
@@ -376,28 +339,17 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun adjustLayoutForOrientation(orientation: Int) {
-        val isLandscape = orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         val constraintSet = ConstraintSet()
         constraintSet.clone(binding.root as ConstraintLayout)
 
-        if (isLandscape) {
-            // Pull HUD elements in slightly more in landscape to keep them reachable
-            constraintSet.setGuidelinePercent(R.id.glLeft, 0.08f)
-            constraintSet.setGuidelinePercent(R.id.glRight, 0.92f)
-            constraintSet.setGuidelinePercent(R.id.glBottom, 0.92f)
-            
-            // Adjust Joysticks for landscape
-            constraintSet.constrainPercentWidth(R.id.joystickMove, 0.15f)
-            constraintSet.constrainPercentWidth(R.id.joystickFire, 0.15f)
-        } else {
-            // Standard portrait guidelines
-            constraintSet.setGuidelinePercent(R.id.glLeft, 0.05f)
-            constraintSet.setGuidelinePercent(R.id.glRight, 0.95f)
-            constraintSet.setGuidelinePercent(R.id.glBottom, 0.95f)
-            
-            constraintSet.constrainPercentWidth(R.id.joystickMove, 0.18f)
-            constraintSet.constrainPercentWidth(R.id.joystickFire, 0.18f)
-        }
+        // Force landscape guidelines
+        constraintSet.setGuidelinePercent(R.id.glLeft, 0.08f)
+        constraintSet.setGuidelinePercent(R.id.glRight, 0.92f)
+        constraintSet.setGuidelinePercent(R.id.glBottom, 0.92f)
+        
+        // Adjust Joysticks for landscape
+        constraintSet.constrainPercentWidth(R.id.joystickMove, 0.15f)
+        constraintSet.constrainPercentWidth(R.id.joystickFire, 0.15f)
         
         constraintSet.applyTo(binding.root as androidx.constraintlayout.widget.ConstraintLayout)
         

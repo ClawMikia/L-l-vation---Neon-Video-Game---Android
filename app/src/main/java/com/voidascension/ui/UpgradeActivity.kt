@@ -50,7 +50,7 @@ class UpgradeActivity : AppCompatActivity() {
         adapter = UpgradeAdapter(emptyList(), 0) { upgrade ->
             handlePurchase(upgrade)
         }
-        binding.rvUpgrades.layoutManager = GridLayoutManager(this, 2)
+        binding.rvUpgrades.layoutManager = GridLayoutManager(this, 3)
         binding.rvUpgrades.adapter = adapter
     }
 

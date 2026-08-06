@@ -181,9 +181,6 @@ class SaveManager @Inject constructor(
     fun isAutoUpgrade(): Boolean = prefs.getBoolean("settings_auto_upgrade", false)
     fun setAutoUpgrade(enabled: Boolean) = prefs.edit().putBoolean("settings_auto_upgrade", enabled).apply()
 
-    fun isTutorialCompleted(id: String): Boolean = prefs.getBoolean("tut_$id", false)
-    fun markTutorialCompleted(id: String) = prefs.edit().putBoolean("tut_$id", true).apply()
-
     fun prestige() {
         prefs.edit().clear().apply()
         // Run database clearing in a background thread if possible, or just use clearAllTables

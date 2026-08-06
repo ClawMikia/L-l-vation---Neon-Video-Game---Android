@@ -14,7 +14,7 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:screenOrientation="portrait"
+            android:screenOrientation="landscape"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,18 +25,19 @@
         <activity
             android:name=".ui.GameActivity"
             android:exported="false"
+            android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:windowSoftInputMode="stateHidden" />
 
         <activity
             android:name=".ui.UpgradeActivity"
             android:exported="false"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="landscape" />
 
         <activity
             android:name=".ui.AvatarSelectActivity"
             android:exported="false"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="landscape" />
 
     </application>
 </manifest>
