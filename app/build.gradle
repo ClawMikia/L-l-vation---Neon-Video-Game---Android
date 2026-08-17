@@ -8,13 +8,13 @@ plugins {
 
 android {
     namespace 'com.voidascension'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
-        applicationId "com.voidascension"
-        minSdk 26
-        targetSdk 34
-        versionCode 1
+        applicationId "com.voidascensio"
+        minSdk 36
+        targetSdk 35
+        versionCode 2
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
